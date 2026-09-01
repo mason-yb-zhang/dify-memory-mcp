@@ -1,0 +1,32 @@
+{
+  "enabled": true,
+  "maxRelevantMemories": 5,
+  "maxProfileMemories": 3,
+  "maxProjectMemories": 5,
+  "injectProfile": true,
+  "injectProjectContext": true,
+  "triggerKeywords": [
+    "记得",
+    "之前",
+    "配置",
+    "环境",
+    "偏好",
+    "规则",
+    "报错",
+    "历史",
+    "项目",
+    "Creo",
+    "FreeCAD",
+    "M5Stack",
+    "飞书"
+  ],
+  "profileQuery": "用户偏好 OpenCode 工作习惯 工具 环境",
+  "projectQueryPrefix": "OpenCode 项目 工具 环境 配置",
+  "scoreThreshold": 0,
+  "postCompactionMemory": {
+    "enabled": true,
+    "maxCandidates": 8,
+    "minMessages": 4,
+    "maxTranscriptChars": 240000
+  }
+}

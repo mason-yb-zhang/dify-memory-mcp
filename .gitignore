@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+apply-config*
+apply-opencode-config*
+lenovo-opencode.json
+
