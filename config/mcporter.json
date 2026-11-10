@@ -1,0 +1,14 @@
+{
+  "persistence": {
+    "directory": "./data/mify-memory-mcp"
+  },
+  "sessionSources": {
+    "default": "",
+    "opencode": {
+      "databasePath": ""
+    },
+    "openclaw": {
+      "sessionsRoot": ""
+    }
+  }
+}

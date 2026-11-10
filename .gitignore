@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+dist-ci/
+.venv/
+venv/
+
+# Secrets — never commit these
+.env
+.env.*
+!.env.example
+*.key
+credentials.json
+
+# Runtime state (created by install.py / lightrag)
+data/
+logs/
+*.log
+config/mcporter.json.local
+
+# OS
+.DS_Store

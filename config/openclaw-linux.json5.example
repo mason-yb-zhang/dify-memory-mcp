@@ -1,0 +1,19 @@
+// Merge this block into ~/.openclaw/openclaw.json.
+// Do not replace the existing OpenClaw configuration with this snippet.
+{
+  mcp: {
+    "mify-memory": {
+      command: "/opt/mify-memory/.venv/bin/python",
+      args: [
+        "/opt/mify-tools/mcp/mify-memory-mcp/scripts/server.py"
+      ],
+      env: {
+        MCPORTER_CONFIG: "/opt/mify-tools/mcp/mify-memory-mcp/config/mcporter.json"
+      }
+    }
+  }
+}
+
+// Keep credentials in scripts/.env beside the configured server.py path.
+// Use chmod 600 on that file. In mcporter.json set sessionSources.default to
+// "openclaw" and configure sessionSources.openclaw.sessionsRoot when nonstandard.

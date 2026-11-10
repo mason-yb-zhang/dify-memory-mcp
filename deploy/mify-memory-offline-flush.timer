@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodically flush queued mify-memory writes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

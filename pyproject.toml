@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mify-memory-mcp"
+version = "1.11.0"
+description = "Mify knowledge-base memory MCP server"
+requires-python = ">=3.10"
+dependencies = [
+  "httpx==0.28.1",
+  "mcp==1.27.0",
+]
+
+[project.scripts]
+mify-memory-mcp = "server:main"
+
+[tool.setuptools]
+py-modules = [
+  "server",
+  "session_store",
+  "memory_model",
+  "memory_service",
+  "privacy",
+  "local_store",
+  "observability",
+  "openclaw_session",
+  "runtime_config",
+]
+
+[tool.setuptools.package-dir]
+"" = "scripts"
+
+[tool.setuptools.data-files]
+"share/mify-memory-mcp/config" = [
+  "config/mcporter.json",
+  "config/mify-memory-plugin.jsonc",
+  "config/openclaw-linux.json5.example",
+]
+"share/mify-memory-mcp/docs" = [
+  "README.md",
+  "CHANGELOG.md",
+  "SKILL.md",
+]
+"share/mify-memory-mcp/docs/references" = [
+  "references/installation.md",
+  "references/mcp-registration.md",
+  "references/api-reference.md",
+  "references/architecture.md",
+  "references/environment.md",
+  "references/troubleshooting.md",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["scripts"]
