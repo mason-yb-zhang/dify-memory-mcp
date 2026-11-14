@@ -25,7 +25,7 @@
 | `top_k` | `integer` | 否 | 返回数量，默认 5 |
 | `sort` | `string` | 否 | `relevance`（默认）/`updated_at`/`created_at` |
 | `prefer` | `string` | 否 | `current` 加强 recency，用于“现在是什么” |
-| `explain` | `boolean` | 否 | 返回 `score_details`（mify/recency/temporal/final） |
+| `explain` | `boolean` | 否 | 返回 `score_details`（dify/recency/temporal/final） |
 | `reference_date` | `string` | 否 | 将该日期视为“现在”做 recency/时间打分 |
 | `show_expired` | `boolean` | 否 | 包含已过期记忆 |
 | `use_cache` | `boolean` | 否 | 默认 `false`；本地缓存 5 分钟 TTL |
@@ -96,9 +96,9 @@
 
 | 参数 | 类型 | 必填 | 说明 |
 |---|---|---|---|
-| `check_mify` | `boolean` | 否 | 是否检查 Mify 连接，默认 `true` |
+| `check_dify` | `boolean` | 否 | 是否检查 Dify 连接，默认 `true` |
 
-返回配置缺失项、Mify 状态、缓存、队列和指标。
+返回配置缺失项、Dify 状态、缓存、队列和指标。
 
 ## Session Archive
 
@@ -143,5 +143,5 @@
 
 - 所有工具返回结构化 JSON。
 - 隐私过滤后为空时返回 `skipped=true`。
-- Mify 写失败且允许重试时写入本地离线队列。
+- Dify 写失败且允许重试时写入本地离线队列。
 - 更新冲突返回 `expected_content_hash` 和 `current_content_hash`。

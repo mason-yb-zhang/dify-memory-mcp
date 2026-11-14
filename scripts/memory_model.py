@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 
-AUDIT_PREFIX = "<!-- mify-memory-audit-v1 "
+AUDIT_PREFIX = "<!-- dify-memory-audit-v1 "
 AUDIT_SUFFIX = " -->"
 AUDIT_RE = re.compile(
     re.escape(AUDIT_PREFIX) + r"(.*?)" + re.escape(AUDIT_SUFFIX),
@@ -24,12 +24,12 @@ def utc_now_iso() -> str:
 
 
 def default_actor() -> str:
-    return os.environ.get("MIFY_MEMORY_ACTOR") or os.environ.get("USERNAME") or "unknown"
+    return os.environ.get("DIFY_MEMORY_ACTOR") or os.environ.get("USERNAME") or "unknown"
 
 
 def default_device() -> str:
     return (
-        os.environ.get("MIFY_MEMORY_DEVICE_ID")
+        os.environ.get("DIFY_MEMORY_DEVICE_ID")
         or os.environ.get("COMPUTERNAME")
         or platform.node()
         or "unknown"
@@ -37,8 +37,8 @@ def default_device() -> str:
 
 
 def default_agent() -> str:
-    if os.environ.get("MIFY_MEMORY_AGENT"):
-        return os.environ["MIFY_MEMORY_AGENT"]
+    if os.environ.get("DIFY_MEMORY_AGENT"):
+        return os.environ["DIFY_MEMORY_AGENT"]
     if os.environ.get("CODEX_SESSION_ID"):
         return "codex"
     return "unknown"

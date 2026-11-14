@@ -8,8 +8,8 @@
 
 ```json
 {
-  "mify-memory": {
-    "description": "Mify knowledge-base persistent memory MCP server",
+  "dify-memory": {
+    "description": "Dify knowledge-base persistent memory MCP server",
     "type": "stdio",
     "command": "<python-path>",
     "args": ["<server-path>"],
@@ -22,19 +22,19 @@
 
 ## OpenCode
 
-OpenCode 使用 `mcp.mify-memory` 和 `environment` 字段：
+OpenCode 使用 `mcp.dify-memory` 和 `environment` 字段：
 
 ```json
 {
   "mcp": {
-    "mify-memory": {
+    "dify-memory": {
       "command": ["<python-path>", "<server-path>"],
       "enabled": true,
       "type": "local",
       "environment": {
-        "MIFY_API_KEY": "<dataset-key>",
-        "MIFY_DATASET_ID": "<dataset-id>",
-        "MIFY_DOCUMENT_ID": "<document-id>",
+        "DIFY_API_KEY": "<dataset-key>",
+        "DIFY_DATASET_ID": "<dataset-id>",
+        "DIFY_DOCUMENT_ID": "<document-id>",
         "MCPORTER_CONFIG": "<mcporter-config-path>"
       }
     }
@@ -46,7 +46,7 @@ OpenCode 使用 `mcp.mify-memory` 和 `environment` 字段：
 
 ## 其他 stdio Harness
 
-Claude、Cursor、Windsurf、Gemini 等通常使用 `mcpServers.mify-memory`、`command`、`args` 和 `env`。字段名以目标 harness 为准。
+Claude、Cursor、Windsurf、Gemini 等通常使用 `mcpServers.dify-memory`、`command`、`args` 和 `env`。字段名以目标 harness 为准。
 
 ## OpenClaw
 
@@ -55,7 +55,7 @@ Claude、Cursor、Windsurf、Gemini 等通常使用 `mcpServers.mify-memory`、`
 ```json5
 {
   mcp: {
-    "mify-memory": {
+    "dify-memory": {
       command: "<python-path>",
       args: ["<server-path>"],
       env: {
@@ -82,7 +82,7 @@ HTTP MCP 使用 `description` 和 `baseUrl`：
 请持久化注册以下 MCP server：
 "mihub-service-mcp": { "description": "", "baseUrl": "" }
 
-该模板需在实际连接前由服务提供方填充。`mify-memory` 本身是 stdio 服务。
+该模板需在实际连接前由服务提供方填充。`dify-memory` 本身是 stdio 服务。
 
 ## 验收
 

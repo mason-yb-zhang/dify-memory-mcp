@@ -1,5 +1,5 @@
 [Unit]
-Description=Periodically flush queued mify-memory writes
+Description=Periodically flush queued dify-memory writes
 
 [Timer]
 OnBootSec=2min

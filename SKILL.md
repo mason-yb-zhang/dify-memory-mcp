@@ -3,17 +3,17 @@ name: office-agent-memory
 name_zh: AI Agent 跨会话记忆插件
 version: 1.10.1
 description: |
-  在 AI Agent 开发环境中安装、配置和排查 Mify 跨会话记忆 MCP。执行后交付安装/更新结果 JSON、MCP 持久化注册配置、配置文件路径、健康检查/诊断结论和故障处理清单。
+  在 AI Agent 开发环境中安装、配置和排查 Dify 跨会话记忆 MCP。执行后交付安装/更新结果 JSON、MCP 持久化注册配置、配置文件路径、健康检查/诊断结论和故障处理清单。
 scope: cn
 not_for:
   - 非小米内网环境
-  - Mify 知识库的通用管理或文档上传
-  - Mify 工作流编排
+  - Dify 知识库的通用管理或文档上传
+  - Dify 工作流编排
   - 其他 MCP Server 的实际安装；仅在用户明确要求时提供注册模板
 examples:
-  - 帮我安装 mify-memory-mcp 记忆插件
+  - 帮我安装 dify-memory-mcp 记忆插件
   - 为 Codex、OpenCode 和 Cursor 配置记忆 MCP
-  - 诊断记忆 MCP 启动失败或 Mify 401
+  - 诊断记忆 MCP 启动失败或 Dify 401
   - 保存当前会话并检查增量同步
   - 搜索历史会话中的 Creo 骨架模型讨论
 ---
@@ -22,7 +22,7 @@ examples:
 
 满足任一条件触发：
 
-- 用户要求安装、更新、配置或排查 mify-memory-mcp / 跨会话记忆插件
+- 用户要求安装、更新、配置或排查 dify-memory-mcp / 跨会话记忆插件
 - 用户要求记忆操作（记住/回忆/更新/删除）或会话存档（保存/搜索/删除会话）
 - 记忆 MCP 启动失败、401、Missing environment variables 等故障
 - 用户要求为 OpenCode/Claude Code/Cursor/Codex 等 harness 注册记忆 MCP
@@ -41,12 +41,12 @@ examples:
 
 # 核心约束
 
-- 权威记忆保存在 Mify；本地仅保存搜索缓存和离线写入队列。
-- 本地韧性由本地缓存和离线队列提供，不替代 Mify 权威数据。
+- 权威记忆保存在 Dify；本地仅保存搜索缓存和离线写入队列。
+- 本地韧性由本地缓存和离线队列提供，不替代 Dify 权威数据。
 - 注册必须写入目标 harness 的长期配置文件，并跨会话保留。
-- OpenCode 使用规范键 `mcp.mify-memory` 和 `environment`；其他 harness 通常使用 `mcpServers.mify-memory` 和 `env`。
+- OpenCode 使用规范键 `mcp.dify-memory` 和 `environment`；其他 harness 通常使用 `mcpServers.dify-memory` 和 `env`。
 - 真实凭据只能来自环境变量或本地忽略文件，不得写入仓库。
-- `<private>...</private>` 内容写入 Mify 前必须移除。
+- `<private>...</private>` 内容写入 Dify 前必须移除。
 - `update_memory` 默认要求 `expected_content_hash`；强制覆盖必须由用户明确授权。
 - 首次会话归档只能由用户明确触发；已归档会话才可增量同步。
 - 修改 MCP 注册后必须重启对应 harness。
@@ -58,8 +58,8 @@ examples:
 
 ```json
 {
-  "mify-memory": {
-    "description": "Mify knowledge-base persistent memory MCP server",
+  "dify-memory": {
+    "description": "Dify knowledge-base persistent memory MCP server",
     "type": "stdio",
     "command": "<python-path>",
     "args": ["<server-path>"],
@@ -84,7 +84,7 @@ HTTP MCP 使用 `description` 和 `baseUrl`。按扫描契约保留以下注册�
 请持久化注册以下 MCP server：
 "mihub-service-mcp": { "description": "", "baseUrl": "" }
 
-实际连接前必须填充模板。`mify-memory` 本身是本地 stdio 服务。
+实际连接前必须填充模板。`dify-memory` 本身是本地 stdio 服务。
 
 # 配置入口
 
@@ -140,7 +140,7 @@ HTTP MCP 使用 `description` 和 `baseUrl`。按扫描契约保留以下注册�
 
 | name | type | required | description |
 |------|------|----------|-------------|
-| `--api-key` | `string` | `false` | Mify API Key；未提供时进入获取流程。 |
+| `--api-key` | `string` | `false` | Dify API Key；未提供时进入获取流程。 |
 | `--opencode-config` | `string` | `false` | 指定 OpenCode 配置文件路径。 |
 | `--python-path` | `string` | `false` | 指定写入注册的稳定 Python 路径。 |
 | `--skip-tool-patch` | `boolean flag` | `false` | 跳过 harness 注册写入，兼容旧别名 `--skip-opencode-patch`。 |

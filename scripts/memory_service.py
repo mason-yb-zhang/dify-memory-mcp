@@ -35,7 +35,7 @@ TIME_PHRASE_RE = re.compile(
 )
 
 
-class MifyClient:
+class DifyClient:
     def __init__(self) -> None:
         self.base_url = dify_base_url()
         self.api_key = ""
@@ -52,22 +52,22 @@ class MifyClient:
         import os
 
         self.local_store = LocalStore()
-        self.base_url = os.environ.get("MIFY_BASE_URL", self.base_url)
-        self.api_key = os.environ.get("MIFY_API_KEY", "")
-        self.dataset_id = os.environ.get("MIFY_DATASET_ID", "")
-        self.short_document_id = os.environ.get("MIFY_DOCUMENT_ID", "")
-        self.permanent_document_id = os.environ.get("MIFY_PERMANENT_DOCUMENT_ID", "")
+        self.base_url = os.environ.get("DIFY_BASE_URL", self.base_url)
+        self.api_key = os.environ.get("DIFY_API_KEY", "")
+        self.dataset_id = os.environ.get("DIFY_DATASET_ID", "")
+        self.short_document_id = os.environ.get("DIFY_DOCUMENT_ID", "")
+        self.permanent_document_id = os.environ.get("DIFY_PERMANENT_DOCUMENT_ID", "")
         self.session_index_document_id = os.environ.get(
-            "MIFY_SESSION_INDEX_DOCUMENT_ID", ""
+            "DIFY_SESSION_INDEX_DOCUMENT_ID", ""
         )
-        self.sessions_dataset_id = os.environ.get("MIFY_SESSIONS_DATASET_ID", "")
+        self.sessions_dataset_id = os.environ.get("DIFY_SESSIONS_DATASET_ID", "")
         self.decay_days = int(os.environ.get("MEMORY_DECAY_DAYS", "30"))
 
     def missing_config(self) -> list[str]:
         values = {
-            "MIFY_API_KEY": self.api_key,
-            "MIFY_DATASET_ID": self.dataset_id,
-            "MIFY_DOCUMENT_ID": self.short_document_id,
+            "DIFY_API_KEY": self.api_key,
+            "DIFY_DATASET_ID": self.dataset_id,
+            "DIFY_DOCUMENT_ID": self.short_document_id,
         }
         return [key for key, value in values.items() if not value]
 
@@ -110,23 +110,23 @@ class MifyClient:
                 elif method == "DELETE":
                     response = await client.delete(url)
                     if response.status_code == 204:
-                        metric_increment("mify_requests_success")
+                        metric_increment("dify_requests_success")
                         return {"success": True}
                 else:
                     raise ValueError(f"Unsupported method: {method}")
 
                 log_event(
-                    "mify_request",
+                    "dify_request",
                     method=method,
                     status=response.status_code,
                     duration_ms=int((time.monotonic() - started) * 1000),
                 )
                 if response.status_code == 429 or response.status_code >= 500:
                     last_error = f"HTTP {response.status_code}: {response.text}"
-                    metric_increment("mify_requests_retried")
+                    metric_increment("dify_requests_retried")
                     await asyncio.sleep(min(2**attempt, 4))
                     continue
-                metric_increment("mify_requests_success")
+                metric_increment("dify_requests_success")
                 if response.status_code >= 400:
                     return {"error": f"HTTP {response.status_code}: {response.text}"}
                 if not response.text:
@@ -135,16 +135,16 @@ class MifyClient:
                 return parsed if isinstance(parsed, dict) else {"success": True}
             except (httpx.TimeoutException, httpx.NetworkError) as exc:
                 last_error = str(exc)
-                metric_increment("mify_requests_retried")
+                metric_increment("dify_requests_retried")
                 log_event(
-                    "mify_transport_retry",
+                    "dify_transport_retry",
                     method=method,
                     attempt=attempt + 1,
                     error_type=type(exc).__name__,
                 )
                 await asyncio.sleep(min(2**attempt, 4))
-        metric_increment("mify_requests_failed")
-        return {"error": last_error or "Mify request failed"}
+        metric_increment("dify_requests_failed")
+        return {"error": last_error or "Dify request failed"}
 
     def document_ids(self) -> list[tuple[str, bool]]:
         result = []
@@ -199,7 +199,7 @@ class MifyClient:
         return None
 
 
-CLIENT = MifyClient()
+CLIENT = DifyClient()
 
 
 def _record(segment: dict[str, Any], permanent: bool) -> dict[str, Any]:
@@ -324,7 +324,7 @@ def _fact_keys(keywords: list[str] | None) -> list[str]:
 async def _find_by_fact_key(fact_key: str) -> dict[str, Any] | None:
     """Locate a memory tagged with fact_key.
 
-    Mify's segments keyword filter is unreliable for tags like fact:slug, so
+    Dify's segments keyword filter is unreliable for tags like fact:slug, so
     scan segment keywords client-side across a bounded number of pages.
     """
     slug = fact_key.split(":", 1)[-1] if ":" in fact_key else fact_key
@@ -473,7 +473,7 @@ async def add_memory(
             "success": False,
             "queued": True,
             "operation_id": operation_id,
-            "error": result.get("error", "Mify write failed"),
+            "error": result.get("error", "Dify write failed"),
             "privacy_findings": findings,
             "warnings": warnings,
         }
@@ -569,7 +569,7 @@ async def update_memory(
             "success": False,
             "queued": True,
             "operation_id": operation_id,
-            "error": result.get("error", "Mify update failed"),
+            "error": result.get("error", "Dify update failed"),
             "privacy_findings": findings,
             "warnings": warnings,
         }
@@ -645,16 +645,16 @@ async def search_memory(
         age = _age_days(record.get("audit", {}).get("last_modified_at", ""), reference)
         recency = _recency_boost(age)
         temporal = _temporal_boost(query, record.get("event_date") or "", reference)
-        mify_score = float(record.get("score") or 0.0)
+        dify_score = float(record.get("score") or 0.0)
         if prefer == "current":
-            final = mify_score + recency_weight * recency + TEMPORAL_WEIGHT * temporal
+            final = dify_score + recency_weight * recency + TEMPORAL_WEIGHT * temporal
         elif sort == "updated_at":
-            final = mify_score
+            final = dify_score
         else:
-            final = mify_score + recency_weight * recency + TEMPORAL_WEIGHT * temporal
+            final = dify_score + recency_weight * recency + TEMPORAL_WEIGHT * temporal
         record["age_days"] = round(age, 3) if age is not None else None
         record["score_details"] = {
-            "mify_score": mify_score,
+            "dify_score": dify_score,
             "recency": round(recency, 4),
             "recency_weight": recency_weight,
             "temporal": round(temporal, 4),
@@ -706,7 +706,7 @@ async def list_memories(
 ) -> dict[str, Any]:
     records = []
     reference = datetime.now(timezone.utc)
-    # Mify segment pagination is not newest-first; scan enough pages so
+    # Dify segment pagination is not newest-first; scan enough pages so
     # last_modified_at sorting can surface the true latest records.
     fetch_limit = 100
     for document_id, permanent in CLIENT.document_ids():
@@ -759,13 +759,13 @@ async def flush_offline_queue() -> dict[str, Any]:
     return {"completed": completed, "failed": failed, "queue": CLIENT.local_store.queue_status()}
 
 
-async def get_health(check_mify: bool = True) -> dict[str, Any]:
-    mify = {"checked": False, "ok": None}
-    if check_mify:
+async def get_health(check_dify: bool = True) -> dict[str, Any]:
+    dify = {"checked": False, "ok": None}
+    if check_dify:
         result = await CLIENT.request("GET", "/datasets?page=1&limit=1")
-        mify = {"checked": True, "ok": "error" not in result}
+        dify = {"checked": True, "ok": "error" not in result}
     return {
-        "status": "ok" if not CLIENT.missing_config() and mify.get("ok", True) else "degraded",
+        "status": "ok" if not CLIENT.missing_config() and dify.get("ok", True) else "degraded",
         "version": "1.10.1",
         "ranking": {
             "recency_half_life_days": RECENCY_HALF_LIFE_DAYS,
@@ -774,7 +774,7 @@ async def get_health(check_mify: bool = True) -> dict[str, Any]:
             "temporal_weight": TEMPORAL_WEIGHT,
         },
         "missing_config": CLIENT.missing_config(),
-        "mify": mify,
+        "dify": dify,
         "offline_queue": CLIENT.local_store.queue_status(),
         "cache": CLIENT.local_store.cache_status(),
         "metrics": metrics_snapshot(),

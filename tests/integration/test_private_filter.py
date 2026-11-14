@@ -36,9 +36,9 @@ class PrivateFilterWritePathTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_add_memory_sends_sanitized_content(self):
         calls = []
-        original = server.mify_request
+        original = server.dify_request
 
-        async def fake_mify_request(method, path, body=None):
+        async def fake_dify_request(method, path, body=None):
             calls.append((method, path, body))
             return {
                 "data": [
@@ -50,11 +50,11 @@ class PrivateFilterWritePathTests(unittest.IsolatedAsyncioTestCase):
                 ]
             }
 
-        server.mify_request = fake_mify_request
+        server.dify_request = fake_dify_request
         try:
             result = await server.add_memory("alpha <private>secret</private> beta")
         finally:
-            server.mify_request = original
+            server.dify_request = original
 
         self.assertEqual(result["content"], "alpha beta")
         self.assertEqual(calls[0][2]["segments"][0]["content"], "alpha beta")

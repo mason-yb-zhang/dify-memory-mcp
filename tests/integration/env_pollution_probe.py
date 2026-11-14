@@ -1,7 +1,7 @@
-"""Regression test: env pollution must not break mify-memory server.
+"""Regression test: env pollution must not break dify-memory server.
 
 Simulates the real-world failure where an sk- format gateway key occupies
-MIFY_API_KEY in the process environment. The server must fall back to the
+DIFY_API_KEY in the process environment. The server must fall back to the
 dataset- key in .env (search_memory must succeed, no HTTP 401 leaks).
 """
 
@@ -18,8 +18,8 @@ SERVER = str(Path(__file__).parents[2] / "scripts" / "server.py")
 
 def polluted_env() -> dict:
     e = os.environ.copy()
-    e["MIFY_API_KEY"] = "sk-" + "invalid" + "-gateway-probe-" + ("0" * 16)
-    for k in [k for k in list(e) if k.startswith("MIFY_") and k != "MIFY_API_KEY"]:
+    e["DIFY_API_KEY"] = "sk-" + "invalid" + "-gateway-probe-" + ("0" * 16)
+    for k in [k for k in list(e) if k.startswith("DIFY_") and k != "DIFY_API_KEY"]:
         del e[k]
     return e
 

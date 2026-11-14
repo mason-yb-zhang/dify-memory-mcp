@@ -1,6 +1,6 @@
 {
   "persistence": {
-    "directory": "./data/mify-memory-mcp"
+    "directory": "./data/dify-memory-mcp"
   },
   "sessionSources": {
     "default": "",

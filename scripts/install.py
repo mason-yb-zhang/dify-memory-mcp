@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
-mify-memory-mcp one-command installer.
+dify-memory-mcp one-command installer.
 
 Usage (paste the following instruction in an AI chat):
 
-    帮我安装 mify-memory-mcp 记忆插件：
+    帮我安装 dify-memory-mcp 记忆插件：
     1. pip install mcp httpx -q
     2. 下载 https://git.n.xiaomi.com/zhangyanbin3/ai-skills/-/archive/main/ai-skills-main.zip 到临时目录并解压（已存在则跳过）
-    3. 运行其中的 mify-memory-mcp/scripts/install.py
+    3. 运行其中的 dify-memory-mcp/scripts/install.py
 
 Or if already cloned:
     python install.py --api-key <KEY>
 
 What it does (fully automatic, no manual steps):
     1. Installs pip dependencies (mcp, httpx) if missing
-    2. Verifies the Mify API Key
-    3. Creates knowledge base + container document on Mify (idempotent)
-    4. Copies Skill files to ~/.config/opencode/skills/mify-memory-mcp/
+    2. Verifies the Dify API Key
+    3. Creates knowledge base + container document on Dify (idempotent)
+    4. Copies Skill files to ~/.config/opencode/skills/dify-memory-mcp/
     5. Patches opencode.json to register the MCP server
     6. Appends AGENT_RULES to ~/.config/opencode/AGENTS.md (if not present)
     7. Prints success JSON to stdout
@@ -31,31 +31,31 @@ import time
 import urllib.request
 import urllib.error
 
-MIFY_BASE_URL = (
+DIFY_BASE_URL = (
     os.environ.get("DIFY_BASE_URL")
-    or os.environ.get("MIFY_BASE_URL")
+    or os.environ.get("DIFY_BASE_URL")
     or "http://127.0.0.1/v1"
 ).rstrip("/")
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.dirname(SCRIPT_DIR)  # parent of scripts/
 SERVER_PATH = os.path.join(SCRIPT_DIR, "server.py")
-UNIFIED_SERVER_PATH = os.environ.get("MIFY_MEMORY_MCP_SERVER_PATH") or os.path.expanduser(
-    "~/.mify-tools/mcp/mify-memory-mcp/scripts/server.py"
+UNIFIED_SERVER_PATH = os.environ.get("DIFY_MEMORY_MCP_SERVER_PATH") or os.path.expanduser(
+    "~/.dify-tools/mcp/dify-memory-mcp/scripts/server.py"
 )
-PLUGIN_SOURCE_PATH = os.path.join(PROJECT_DIR, "plugins", "mify-memory-inject.js")
+PLUGIN_SOURCE_PATH = os.path.join(PROJECT_DIR, "plugins", "dify-memory-inject.js")
 PLUGIN_CONFIG_SOURCE_PATH = os.path.join(
-    PROJECT_DIR, "config", "mify-memory-plugin.jsonc"
+    PROJECT_DIR, "config", "dify-memory-plugin.jsonc"
 )
 OPENCODE_PLUGIN_PATH = os.path.expanduser(
-    "~/.config/opencode/plugins/mify-memory-inject.js"
+    "~/.config/opencode/plugins/dify-memory-inject.js"
 )
 OPENCODE_PLUGIN_CONFIG_PATH = os.path.expanduser(
-    "~/.config/opencode/mify-memory-plugin.jsonc"
+    "~/.config/opencode/dify-memory-plugin.jsonc"
 )
 REQUIRED_MEMORY_ENV = (
-    "MIFY_API_KEY",
-    "MIFY_DATASET_ID",
-    "MIFY_DOCUMENT_ID",
+    "DIFY_API_KEY",
+    "DIFY_DATASET_ID",
+    "DIFY_DOCUMENT_ID",
 )
 
 
@@ -63,7 +63,7 @@ REQUIRED_MEMORY_ENV = (
 
 
 def log(msg):
-    print(f"[mify-memory] {msg}", file=sys.stderr)
+    print(f"[dify-memory] {msg}", file=sys.stderr)
 
 
 def find_stable_python():
@@ -109,7 +109,7 @@ def find_stable_python():
 
 
 def api_request(method, path, api_key, body=None):
-    url = f"{MIFY_BASE_URL}{path}"
+    url = f"{DIFY_BASE_URL}{path}"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     data = json.dumps(body).encode() if body else None
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
@@ -142,7 +142,7 @@ def find_opencode_config():
 def get_memory_entry(config):
     """Return the canonical OpenCode memory MCP entry, accepting the legacy key."""
     mcp = config.get("mcp", {})
-    return mcp.get("mify-memory") or mcp.get("memory") or {}
+    return mcp.get("dify-memory") or mcp.get("memory") or {}
 
 
 def get_memory_env_state(config):
@@ -183,7 +183,7 @@ def migrate_legacy_memory_env(config_path):
 
     mcp = config.get("mcp", {})
     memory_key = next(
-        (key for key in ("mify-memory", "memory") if isinstance(mcp.get(key), dict)),
+        (key for key in ("dify-memory", "memory") if isinstance(mcp.get(key), dict)),
         None,
     )
     memory = mcp.get(memory_key, {}) if memory_key else {}
@@ -205,8 +205,8 @@ TOOL_CONFIGS = {
         "paths": [
             os.path.expanduser("~/.config/opencode/opencode.json"),
         ],
-        "mcp_root": "mcp",  # config["mcp"]["mify-memory"]
-        "server_key": "mify-memory",
+        "mcp_root": "mcp",  # config["mcp"]["dify-memory"]
+        "server_key": "dify-memory",
         "env_field": "environment",  # OpenCode uses "environment"
         "command_format": "array",  # ["python", "server.py"]
     },
@@ -215,8 +215,8 @@ TOOL_CONFIGS = {
             os.path.expanduser("~/.claude/settings.json"),
             os.path.expanduser("~/.claude.json"),
         ],
-        "mcp_root": "mcpServers",  # config["mcpServers"]["mify-memory"]
-        "server_key": "mify-memory",
+        "mcp_root": "mcpServers",  # config["mcpServers"]["dify-memory"]
+        "server_key": "dify-memory",
         "env_field": "env",  # Claude uses "env"
         "command_format": "split",  # "command": "python", "args": ["server.py"]
     },
@@ -235,7 +235,7 @@ TOOL_CONFIGS = {
             ),
         ],
         "mcp_root": "mcpServers",
-        "server_key": "mify-memory",
+        "server_key": "dify-memory",
         "env_field": "env",
         "command_format": "split",
     },
@@ -244,7 +244,7 @@ TOOL_CONFIGS = {
             os.path.expanduser("~/.cursor/mcp.json"),
         ],
         "mcp_root": "mcpServers",
-        "server_key": "mify-memory",
+        "server_key": "dify-memory",
         "env_field": "env",
         "command_format": "split",
     },
@@ -253,7 +253,7 @@ TOOL_CONFIGS = {
             os.path.expanduser("~/.gemini/settings.json"),
         ],
         "mcp_root": "mcpServers",
-        "server_key": "mify-memory",
+        "server_key": "dify-memory",
         "env_field": "env",
         "command_format": "split",
     },
@@ -263,7 +263,7 @@ TOOL_CONFIGS = {
             os.path.expanduser("~/.codeium/windsurf/mcp_config.json"),
         ],
         "mcp_root": "mcpServers",
-        "server_key": "mify-memory",
+        "server_key": "dify-memory",
         "env_field": "env",
         "command_format": "split",
     },
@@ -272,7 +272,7 @@ TOOL_CONFIGS = {
             os.path.expanduser("~/.openclaw/openclaw.json"),
         ],
         "mcp_root": "mcp",
-        "server_key": "mify-memory",
+        "server_key": "dify-memory",
         "env_field": "env",
         "command_format": "split",
     },
@@ -304,8 +304,8 @@ def resolve_mcporter_config_path(server_path):
 def build_persistent_registration(python_path, server_path):
     """Build harness-neutral MCP registration metadata without secrets."""
     return {
-        "server_key": "mify-memory",
-        "description": "Mify knowledge-base persistent memory MCP server",
+        "server_key": "dify-memory",
+        "description": "Dify knowledge-base persistent memory MCP server",
         "transport": "stdio",
         "persistent": True,
         "command": python_path,
@@ -313,12 +313,12 @@ def build_persistent_registration(python_path, server_path):
         "mcporter_config": resolve_mcporter_config_path(server_path),
         "env_keys": [
             "MCPORTER_CONFIG",
-            "MIFY_API_KEY",
-            "MIFY_DATASET_ID",
-            "MIFY_DOCUMENT_ID",
-            "MIFY_PERMANENT_DOCUMENT_ID",
-            "MIFY_SESSION_INDEX_DOCUMENT_ID",
-            "MIFY_SESSIONS_DATASET_ID",
+            "DIFY_API_KEY",
+            "DIFY_DATASET_ID",
+            "DIFY_DOCUMENT_ID",
+            "DIFY_PERMANENT_DOCUMENT_ID",
+            "DIFY_SESSION_INDEX_DOCUMENT_ID",
+            "DIFY_SESSIONS_DATASET_ID",
         ],
     }
 
@@ -441,11 +441,11 @@ def install_opencode_memory_plugin(opencode_config_path=None):
 
 
 def check_existing_installation(opencode_config_path):
-    """Check if mify-memory-mcp is already installed. Returns details dict or None."""
+    """Check if dify-memory-mcp is already installed. Returns details dict or None."""
     checks = {}
 
     # Check 1: Skill directory exists with SKILL.md
-    skill_dir = os.path.expanduser("~/.config/opencode/skills/mify-memory-mcp")
+    skill_dir = os.path.expanduser("~/.config/opencode/skills/dify-memory-mcp")
     checks["skill_installed"] = os.path.isfile(os.path.join(skill_dir, "SKILL.md"))
 
     # Check 2: server.py exists in skill
@@ -462,7 +462,7 @@ def check_existing_installation(opencode_config_path):
             memory_key = next(
                 (
                     key
-                    for key in ("mify-memory", "memory")
+                    for key in ("dify-memory", "memory")
                     if isinstance(mcp.get(key), dict) and mcp[key].get("enabled")
                 ),
                 None,
@@ -518,8 +518,8 @@ def ensure_dependencies():
 
 
 def install_skill_files():
-    """Copy Skill files to ~/.config/opencode/skills/mify-memory-mcp/"""
-    skills_dir = os.path.expanduser("~/.config/opencode/skills/mify-memory-mcp")
+    """Copy Skill files to ~/.config/opencode/skills/dify-memory-mcp/"""
+    skills_dir = os.path.expanduser("~/.config/opencode/skills/dify-memory-mcp")
 
     # Source files from project directory
     files_to_copy = {
@@ -544,8 +544,8 @@ def install_skill_files():
         "scripts/.env.example": os.path.join(SCRIPT_DIR, ".env.example"),
     }
     plugins_to_copy = {
-        "plugins/mify-memory-inject.js": PLUGIN_SOURCE_PATH,
-        "config/mify-memory-plugin.jsonc": PLUGIN_CONFIG_SOURCE_PATH,
+        "plugins/dify-memory-inject.js": PLUGIN_SOURCE_PATH,
+        "config/dify-memory-plugin.jsonc": PLUGIN_CONFIG_SOURCE_PATH,
         "config/openclaw-linux.json5.example": os.path.join(
             PROJECT_DIR, "config", "openclaw-linux.json5.example"
         ),
@@ -596,8 +596,8 @@ def append_agent_rules():
     agents_md = os.path.expanduser("~/.config/opencode/AGENTS.md")
     rules_file = os.path.join(PROJECT_DIR, "AGENT_RULES.md")
     marker = "# Agent Memory Rules"
-    begin_marker = "<!-- BEGIN mify-memory-mcp AGENT_RULES -->"
-    end_marker = "<!-- END mify-memory-mcp AGENT_RULES -->"
+    begin_marker = "<!-- BEGIN dify-memory-mcp AGENT_RULES -->"
+    end_marker = "<!-- END dify-memory-mcp AGENT_RULES -->"
 
     if not os.path.isfile(rules_file):
         return False
@@ -673,12 +673,12 @@ def open_browser(url):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="mify-memory-mcp one-command installer"
+        description="dify-memory-mcp one-command installer"
     )
     parser.add_argument(
         "--api-key",
         required=False,
-        help="Mify API Key (dataset-XXXX). If omitted, opens browser for user to obtain one.",
+        help="Dify API Key (dataset-XXXX). If omitted, opens browser for user to obtain one.",
     )
     parser.add_argument(
         "--opencode-config", help="Path to opencode.json (auto-detected)"
@@ -727,7 +727,7 @@ def main():
         # Check if permanent doc is missing (upgraded from older version)
         needs_upgrade = False
         mcp_env = already_installed.get("mcp_env", {})
-        if not mcp_env.get("MIFY_PERMANENT_DOCUMENT_ID"):
+        if not mcp_env.get("DIFY_PERMANENT_DOCUMENT_ID"):
             needs_upgrade = True
             log(
                 "WARNING: Long-term memory not configured. Run with --api-key to enable permanent memory."
@@ -743,8 +743,8 @@ def main():
 
         # Check if Session Archive is not yet configured (v1.4.0+ optional feature)
         needs_session_setup = False
-        if not mcp_env.get("MIFY_SESSION_INDEX_DOCUMENT_ID") or not mcp_env.get(
-            "MIFY_SESSIONS_DATASET_ID"
+        if not mcp_env.get("DIFY_SESSION_INDEX_DOCUMENT_ID") or not mcp_env.get(
+            "DIFY_SESSIONS_DATASET_ID"
         ):
             needs_session_setup = True
 
@@ -770,7 +770,7 @@ def main():
         log("")
 
         messages = [
-            "mify-memory-mcp skill files updated. Restart to activate new version."
+            "dify-memory-mcp skill files updated. Restart to activate new version."
         ]
         if needs_upgrade:
             messages.append("Run again with --api-key to enable long-term memory.")
@@ -806,12 +806,12 @@ def main():
 
     # If no API key provided, open browser and prompt
     if not api_key:
-        mify_url = "http://127.0.0.1/datasets?category=api"
-        browser_opened = open_browser(mify_url)
+        dify_url = "http://127.0.0.1/datasets?category=api"
+        browser_opened = open_browser(dify_url)
         if browser_opened:
-            log(f"Browser opened: {mify_url}")
+            log(f"Browser opened: {dify_url}")
         else:
-            log(f"Could not open browser. Please manually visit: {mify_url}")
+            log(f"Could not open browser. Please manually visit: {dify_url}")
         log("Please go to Settings -> API, copy your API Key (format: dataset-XXXX)")
         print(
             json.dumps(
@@ -819,7 +819,7 @@ def main():
                     "success": False,
                     "needs_api_key": True,
                     "browser_opened": browser_opened,
-                    "url": mify_url,
+                    "url": dify_url,
                     "instruction": "请用户打开上方 URL，进入页面后点击右上角「设置」→「API」，复制 API Key（格式：dataset-XXXX）粘贴给 AI。",
                     "next_step": f'python "{os.path.abspath(__file__)}" --api-key <用户粘贴的KEY>',
                 }
@@ -1089,16 +1089,16 @@ def main():
     )
 
     env_config = {
-        "MIFY_API_KEY": api_key,
-        "MIFY_DATASET_ID": dataset_id,
-        "MIFY_DOCUMENT_ID": document_id,
-        "MIFY_PERMANENT_DOCUMENT_ID": permanent_document_id,
+        "DIFY_API_KEY": api_key,
+        "DIFY_DATASET_ID": dataset_id,
+        "DIFY_DOCUMENT_ID": document_id,
+        "DIFY_PERMANENT_DOCUMENT_ID": permanent_document_id,
         "MCPORTER_CONFIG": resolve_mcporter_config_path(installed_server),
     }
     if session_index_document_id:
-        env_config["MIFY_SESSION_INDEX_DOCUMENT_ID"] = session_index_document_id
+        env_config["DIFY_SESSION_INDEX_DOCUMENT_ID"] = session_index_document_id
     if sessions_dataset_id:
-        env_config["MIFY_SESSIONS_DATASET_ID"] = sessions_dataset_id
+        env_config["DIFY_SESSIONS_DATASET_ID"] = sessions_dataset_id
 
     patched_tools = []
     registration_config_paths = []
@@ -1148,15 +1148,15 @@ def main():
     # Step 7: Write .env (backup)
     env_path = os.path.join(SCRIPT_DIR, ".env")
     with open(env_path, "w", encoding="utf-8") as f:
-        f.write(f"MIFY_API_KEY={api_key}\n")
-        f.write(f"MIFY_DATASET_ID={dataset_id}\n")
-        f.write(f"MIFY_DOCUMENT_ID={document_id}\n")
-        f.write(f"MIFY_PERMANENT_DOCUMENT_ID={permanent_document_id}\n")
-        f.write(f"MIFY_SESSION_INDEX_DOCUMENT_ID={session_index_document_id or ''}\n")
-        f.write(f"MIFY_SESSIONS_DATASET_ID={sessions_dataset_id or ''}\n")
-        f.write(f"MIFY_BASE_URL={MIFY_BASE_URL}\n")
+        f.write(f"DIFY_API_KEY={api_key}\n")
+        f.write(f"DIFY_DATASET_ID={dataset_id}\n")
+        f.write(f"DIFY_DOCUMENT_ID={document_id}\n")
+        f.write(f"DIFY_PERMANENT_DOCUMENT_ID={permanent_document_id}\n")
+        f.write(f"DIFY_SESSION_INDEX_DOCUMENT_ID={session_index_document_id or ''}\n")
+        f.write(f"DIFY_SESSIONS_DATASET_ID={sessions_dataset_id or ''}\n")
+        f.write(f"DIFY_BASE_URL={DIFY_BASE_URL}\n")
         f.write(f"MEMORY_DECAY_DAYS=30\n")
-        f.write("MIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS=1800\n")
+        f.write("DIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS=1800\n")
 
     # Output result
     session_ok = bool(session_index_document_id and sessions_dataset_id)
@@ -1215,7 +1215,7 @@ def main():
         "opencode_memory_plugin": plugin_result,
         "rules_appended": rules_appended,
         "tools_available": 15 if session_ok else 10,
-        "message": "mify-memory-mcp is ready. Restart to activate.",
+        "message": "dify-memory-mcp is ready. Restart to activate.",
     }
     print(json.dumps(output, indent=2, ensure_ascii=False))
 

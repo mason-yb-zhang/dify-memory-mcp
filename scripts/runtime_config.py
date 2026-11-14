@@ -34,7 +34,7 @@ def _resolve_path(value: str | os.PathLike[str]) -> Path:
 
 
 def state_dir() -> Path:
-    configured = os.environ.get("MIFY_MEMORY_STATE_DIR")
+    configured = os.environ.get("DIFY_MEMORY_STATE_DIR")
     if configured:
         return _resolve_path(configured)
     config = load_config()
@@ -43,13 +43,13 @@ def state_dir() -> Path:
         persistence.get("directory")
         or config.get("persistenceDir")
         or config.get("dataDir")
-        or "./data/mify-memory-mcp"
+        or "./data/dify-memory-mcp"
     )
     return _resolve_path(value)
 
 
 def session_source() -> str:
-    configured = os.environ.get("MIFY_MEMORY_SESSION_SOURCE")
+    configured = os.environ.get("DIFY_MEMORY_SESSION_SOURCE")
     if configured:
         return configured.strip().lower()
     config = load_config()
@@ -75,9 +75,9 @@ def openclaw_sessions_root() -> Path | None:
     return _resolve_path(value) if value else None
 
 
-# --- Dify (or Mify) service API -------------------------------------------------
+# --- Dify (or Dify) service API -------------------------------------------------
 #
-# Mify is a fork of Dify, so both speak the same knowledge-base Service API
+# Dify is a fork of Dify, so both speak the same knowledge-base Service API
 # under `/datasets/...`. Only the base URL and the rerank provider differ.
 
 DEFAULT_BASE_URL = "http://127.0.0.1/v1"
@@ -86,10 +86,10 @@ DEFAULT_BASE_URL = "http://127.0.0.1/v1"
 def dify_base_url() -> str:
     """Knowledge-base Service API base URL.
 
-    Prefers ``DIFY_BASE_URL`` and falls back to the legacy ``MIFY_BASE_URL``
-    so an existing Mify deployment keeps working without changes.
+    Prefers ``DIFY_BASE_URL`` and falls back to the legacy ``DIFY_BASE_URL``
+    so an existing Dify deployment keeps working without changes.
     """
-    for key in ("DIFY_BASE_URL", "MIFY_BASE_URL"):
+    for key in ("DIFY_BASE_URL", "DIFY_BASE_URL"):
         value = os.environ.get(key)
         if value:
             return value.rstrip("/")

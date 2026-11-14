@@ -4,9 +4,9 @@ import { dirname, join } from "node:path"
 
 const home = process.env.USERPROFILE || process.env.HOME || ""
 const opencodeDir = process.env.OPENCODE_CONFIG_DIR || join(home, ".config", "opencode")
-const CONFIG_PATH = join(opencodeDir, "mify-memory-plugin.jsonc")
+const CONFIG_PATH = join(opencodeDir, "dify-memory-plugin.jsonc")
 const OPENCODE_CONFIG_PATH = join(opencodeDir, "opencode.json")
-const LOG_PATH = join(opencodeDir, "mify-memory-plugin.log")
+const LOG_PATH = join(opencodeDir, "dify-memory-plugin.log")
 
 const DEFAULT_CONFIG = {
   enabled: true,
@@ -173,31 +173,31 @@ function normalizeCandidates(raw, maxCandidates = 8) {
 }
 
 function getMemoryEnvironment(opencodeConfig) {
-  const memoryMcp = opencodeConfig?.mcp?.["mify-memory"]
+  const memoryMcp = opencodeConfig?.mcp?.["dify-memory"]
     || opencodeConfig?.mcp?.memory
     || {}
   const configured = memoryMcp.environment
     || memoryMcp.env
     || {}
-  const inherited = /^dataset-/.test(process.env.MIFY_API_KEY || "")
+  const inherited = /^dataset-/.test(process.env.DIFY_API_KEY || "")
     ? {
-        MIFY_API_KEY: process.env.MIFY_API_KEY,
-        MIFY_DATASET_ID: process.env.MIFY_DATASET_ID,
-        MIFY_DOCUMENT_ID: process.env.MIFY_DOCUMENT_ID,
-        MIFY_PERMANENT_DOCUMENT_ID: process.env.MIFY_PERMANENT_DOCUMENT_ID,
+        DIFY_API_KEY: process.env.DIFY_API_KEY,
+        DIFY_DATASET_ID: process.env.DIFY_DATASET_ID,
+        DIFY_DOCUMENT_ID: process.env.DIFY_DOCUMENT_ID,
+        DIFY_PERMANENT_DOCUMENT_ID: process.env.DIFY_PERMANENT_DOCUMENT_ID,
       }
     : {}
   return { ...inherited, ...configured }
 }
 
 async function retrieveMemory(env, query, limit, scoreThreshold) {
-  if (!env.MIFY_API_KEY || !env.MIFY_DATASET_ID) return []
+  if (!env.DIFY_API_KEY || !env.DIFY_DATASET_ID) return []
 
-  const baseUrl = env.MIFY_BASE_URL || "https://service.mify.mioffice.cn/api/v1"
-  const response = await fetch(`${baseUrl}/datasets/${env.MIFY_DATASET_ID}/retrieve`, {
+  const baseUrl = env.DIFY_BASE_URL || "https://service.dify.mioffice.cn/api/v1"
+  const response = await fetch(`${baseUrl}/datasets/${env.DIFY_DATASET_ID}/retrieve`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${env.MIFY_API_KEY}`,
+      Authorization: `Bearer ${env.DIFY_API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -216,7 +216,7 @@ async function retrieveMemory(env, query, limit, scoreThreshold) {
     }),
   })
 
-  if (!response.ok) throw new Error(`Mify retrieve failed: HTTP ${response.status}`)
+  if (!response.ok) throw new Error(`Dify retrieve failed: HTTP ${response.status}`)
   const result = await response.json()
   const records = Array.isArray(result?.records) ? result.records : []
   return records
@@ -235,13 +235,13 @@ async function persistMemoryCandidates(candidates, env) {
   let skipped = 0
 
   for (const candidate of candidates) {
-    if (!env.MIFY_API_KEY || !env.MIFY_DATASET_ID || !env.MIFY_DOCUMENT_ID) {
+    if (!env.DIFY_API_KEY || !env.DIFY_DATASET_ID || !env.DIFY_DOCUMENT_ID) {
       skipped += 1
       continue
     }
-    const documentId = candidate.permanent && env.MIFY_PERMANENT_DOCUMENT_ID
-      ? env.MIFY_PERMANENT_DOCUMENT_ID
-      : env.MIFY_DOCUMENT_ID
+    const documentId = candidate.permanent && env.DIFY_PERMANENT_DOCUMENT_ID
+      ? env.DIFY_PERMANENT_DOCUMENT_ID
+      : env.DIFY_DOCUMENT_ID
     const group = groups.get(documentId) || []
     group.push({ content: candidate.content, keywords: candidate.keywords })
     groups.set(documentId, group)
@@ -250,13 +250,13 @@ async function persistMemoryCandidates(candidates, env) {
   let saved = 0
   for (const [documentId, segments] of groups) {
     try {
-      const baseUrl = env.MIFY_BASE_URL || "https://service.mify.mioffice.cn/api/v1"
+      const baseUrl = env.DIFY_BASE_URL || "https://service.dify.mioffice.cn/api/v1"
       const response = await fetch(
-        `${baseUrl}/datasets/${env.MIFY_DATASET_ID}/documents/${documentId}/segments`,
+        `${baseUrl}/datasets/${env.DIFY_DATASET_ID}/documents/${documentId}/segments`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${env.MIFY_API_KEY}`,
+            Authorization: `Bearer ${env.DIFY_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ segments }),
@@ -276,11 +276,11 @@ async function persistMemoryCandidates(candidates, env) {
 
 async function extractMemoryCandidates(transcript, options) {
   const childResponse = await options.client.session.create({
-    body: { parentID: options.sessionID, title: "Mify memory extraction" },
+    body: { parentID: options.sessionID, title: "Dify memory extraction" },
     query: { directory: options.directory },
   })
   const child = childResponse?.data || childResponse
-  if (!child?.id) throw new Error("Mify memory extraction session was not created")
+  if (!child?.id) throw new Error("Dify memory extraction session was not created")
   options.internalSessions?.add(child.id)
 
   try {
@@ -326,7 +326,7 @@ function rememberProcessed(set, fingerprint, maxSize = 500) {
   while (set.size > maxSize) set.delete(set.values().next().value)
 }
 
-export default async function mifyMemoryInjectPlugin({ client, directory }) {
+export default async function difyMemoryInjectPlugin({ client, directory }) {
   const pluginConfig = await readJsonFile(CONFIG_PATH, {})
   const config = {
     ...DEFAULT_CONFIG,
@@ -440,7 +440,7 @@ export default async function mifyMemoryInjectPlugin({ client, directory }) {
       }
 
       sessions.set(input.sessionID, state)
-      if (sections.length) output.system.push(`[MIFY_MEMORY]\n${sections.join("\n\n")}`)
+      if (sections.length) output.system.push(`[DIFY_MEMORY]\n${sections.join("\n\n")}`)
     },
 
     "experimental.compaction.autocontinue": async (input, output) => {

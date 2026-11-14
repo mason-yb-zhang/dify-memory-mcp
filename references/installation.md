@@ -2,7 +2,7 @@
 
 ## 适用场景
 
-- 首次安装 `mify-memory-mcp`
+- 首次安装 `dify-memory-mcp`
 - 为多个 AI Agent harness 注册记忆服务
 - 升级现有安装并修复缺失配置
 - 执行交互式或无人值守安装
@@ -22,12 +22,12 @@
 python scripts/install.py --api-key "<dataset-key>"
 ```
 
-未提供 `--api-key` 时，安装器输出 `needs_api_key=true` 和 Mify API 获取地址。取得 Key 后重新执行同一命令。
+未提供 `--api-key` 时，安装器输出 `needs_api_key=true` 和 Dify API 获取地址。取得 Key 后重新执行同一命令。
 
 完整流程：
 
 1. 校验 Python 依赖。
-2. 校验 Mify API Key。
+2. 校验 Dify API Key。
 3. 创建或复用记忆知识库和 Session Archive 知识库。
 4. 复制 Skill、运行脚本、插件、配置和 `references/`。
 5. 向检测到的 harness 写入持久化 MCP 注册。
@@ -45,7 +45,7 @@ python scripts/setup.py
 
 ## 更新
 
-重复运行 `install.py` 即可进入更新模式。更新模式会刷新 Skill、脚本、插件、配置模板和参考文档，不会重建已存在的 Mify 知识库。
+重复运行 `install.py` 即可进入更新模式。更新模式会刷新 Skill、脚本、插件、配置模板和参考文档，不会重建已存在的 Dify 知识库。
 
 更新后必须检查：
 
@@ -60,7 +60,7 @@ python scripts/setup.py
 
 | name | type | required | description |
 |---|---|---|---|
-| `--api-key` | `string` | `false` | Mify API Key；未提供时进入引导流程。 |
+| `--api-key` | `string` | `false` | Dify API Key；未提供时进入引导流程。 |
 | `--opencode-config` | `string` | `false` | 指定 OpenCode 配置文件路径。 |
 | `--python-path` | `string` | `false` | 指定稳定的 Python 可执行文件路径。 |
 | `--skip-tool-patch` | `boolean flag` | `false` | 跳过 harness 配置写入，兼容旧别名 `--skip-opencode-patch`。 |
@@ -90,7 +90,7 @@ python scripts/setup.py
 ## 安装后验收
 
 1. 重启安装结果中列出的 harness。
-2. 调用 `get_health` 检查配置和 Mify 连接。
+2. 调用 `get_health` 检查配置和 Dify 连接。
 3. 调用 `list_memories` 验证读取。
 4. 需要会话共享时，确认两个 Session Archive 环境 ID 已配置。
 5. 首次会话归档仍需用户明确触发。

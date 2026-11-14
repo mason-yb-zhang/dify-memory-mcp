@@ -118,7 +118,7 @@ def test_save_session_rollback_creates_new_before_deleting_old():
 
     call_order = []
 
-    async def fake_mify_request(method, path, body=None):
+    async def fake_dify_request(method, path, body=None):
         call_order.append((method, path))
         if method == "DELETE":
             return {"success": True}
@@ -133,7 +133,7 @@ def test_save_session_rollback_creates_new_before_deleting_old():
              patch.object(mod, "_find_existing_index", new=AsyncMock(return_value=fake_existing)), \
              patch.object(mod, "_create_session_document", side_effect=fake_create_doc), \
              patch.object(mod, "_update_index", new=AsyncMock(return_value=True)), \
-             patch.object(mod, "_mify_request", side_effect=fake_mify_request):
+             patch.object(mod, "_dify_request", side_effect=fake_dify_request):
 
             result = await mod.save_session(session_id="sess-002", source="opencode")
 
@@ -189,7 +189,7 @@ def test_save_session_rollback_reports_old_document_delete_failure():
         "message_count": 5,
     }
 
-    async def fake_mify_request(method, path, body=None):
+    async def fake_dify_request(method, path, body=None):
         if method == "DELETE" and "documents/doc-old-id" in path:
             return {"error": "delete failed"}
         return {"success": True}
@@ -201,7 +201,7 @@ def test_save_session_rollback_reports_old_document_delete_failure():
                  return_value={"document_id": "doc-new-id", "error": None}
              )), \
              patch.object(mod, "_update_index", new=AsyncMock(return_value=True)), \
-             patch.object(mod, "_mify_request", side_effect=fake_mify_request):
+             patch.object(mod, "_dify_request", side_effect=fake_dify_request):
             return await mod.save_session(session_id="sess-delete-fail", source="opencode")
 
     result = run(run_test())
@@ -239,7 +239,7 @@ def test_save_session_rollback_create_failure_preserves_old_document():
         "document_id": "doc-old-id",
         "message_count": 5,
     }
-    mify_request = AsyncMock(return_value={"success": True})
+    dify_request = AsyncMock(return_value={"success": True})
     update_index = AsyncMock(return_value=True)
 
     async def run_test():
@@ -249,7 +249,7 @@ def test_save_session_rollback_create_failure_preserves_old_document():
                  return_value={"document_id": None, "error": "create failed"}
              )), \
              patch.object(mod, "_update_index", new=update_index), \
-             patch.object(mod, "_mify_request", new=mify_request):
+             patch.object(mod, "_dify_request", new=dify_request):
             return await mod.save_session(session_id="sess-rollback-fail", source="opencode")
 
     result = run(run_test())
@@ -257,7 +257,7 @@ def test_save_session_rollback_create_failure_preserves_old_document():
     assert result.get("success") is False, f"Expected success=False, got: {result}"
     assert result.get("mode") == "rebuild", f"Expected mode=rebuild, got: {result}"
     assert result.get("upload_error") == "create failed"
-    mify_request.assert_not_called()
+    dify_request.assert_not_called()
     update_index.assert_not_called()
 
 
@@ -280,7 +280,7 @@ def test_delete_session_requires_document_and_index_delete_success():
 
     call_count = {"n": 0}
 
-    async def fake_mify_request(method, path, body=None):
+    async def fake_dify_request(method, path, body=None):
         call_count["n"] += 1
         if "documents/doc-abc" in path and method == "DELETE":
             # Document delete succeeds
@@ -292,7 +292,7 @@ def test_delete_session_requires_document_and_index_delete_success():
 
     async def run_test():
         with patch.object(mod, "_find_existing_index", new=AsyncMock(return_value=fake_existing)), \
-             patch.object(mod, "_mify_request", side_effect=fake_mify_request):
+             patch.object(mod, "_dify_request", side_effect=fake_dify_request):
 
             # Patch SESSIONS_DATASET_ID and MEMORY_DATASET_ID to non-empty values
             original_sessions = mod.SESSIONS_DATASET_ID

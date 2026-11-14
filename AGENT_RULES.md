@@ -1,6 +1,6 @@
 # Agent Memory Rules（自动记忆行为规则）
 
-**本文件定义 Agent 何时自动使用记忆工具。安装 mify-memory-mcp 后，Agent 应在每次对话中遵循以下规则。**
+**本文件定义 Agent 何时自动使用记忆工具。安装 dify-memory-mcp 后，Agent 应在每次对话中遵循以下规则。**
 
 ---
 

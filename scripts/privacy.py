@@ -14,7 +14,7 @@ SENSITIVE_PATTERNS = (
     (re.compile(r"(?i)\b(api[_-]?key|token|secret|password|passwd|cookie|authorization)\b\s*[:=]\s*[^\s,;]+"), "credential_assignment"),
     (re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{8,}"), "bearer_token"),
     (re.compile(r"\bsk-[A-Za-z0-9_-]{8,}"), "api_token"),
-    (re.compile(r"\bdataset-[A-Za-z0-9]{8,}"), "mify_dataset_key"),
+    (re.compile(r"\bdataset-[A-Za-z0-9]{8,}"), "dify_dataset_key"),
     (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----", re.DOTALL), "private_key"),
     (re.compile(r"\b[1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[0-9Xx]\b"), "cn_national_id"),
 )

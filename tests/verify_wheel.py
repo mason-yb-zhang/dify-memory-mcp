@@ -18,15 +18,15 @@ def main() -> int:
 
     required = {
         "runtime_config.py",
-        "share/mify-memory-mcp/config/mcporter.json",
-        "share/mify-memory-mcp/docs/README.md",
-        "share/mify-memory-mcp/docs/SKILL.md",
-        "share/mify-memory-mcp/docs/references/installation.md",
-        "share/mify-memory-mcp/docs/references/mcp-registration.md",
-        "share/mify-memory-mcp/docs/references/api-reference.md",
-        "share/mify-memory-mcp/docs/references/architecture.md",
-        "share/mify-memory-mcp/docs/references/environment.md",
-        "share/mify-memory-mcp/docs/references/troubleshooting.md",
+        "share/dify-memory-mcp/config/mcporter.json",
+        "share/dify-memory-mcp/docs/README.md",
+        "share/dify-memory-mcp/docs/SKILL.md",
+        "share/dify-memory-mcp/docs/references/installation.md",
+        "share/dify-memory-mcp/docs/references/mcp-registration.md",
+        "share/dify-memory-mcp/docs/references/api-reference.md",
+        "share/dify-memory-mcp/docs/references/architecture.md",
+        "share/dify-memory-mcp/docs/references/environment.md",
+        "share/dify-memory-mcp/docs/references/troubleshooting.md",
     }
     missing = sorted(
         name

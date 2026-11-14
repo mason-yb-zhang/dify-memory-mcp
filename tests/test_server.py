@@ -30,9 +30,9 @@ _SKILL_MD = os.path.abspath(os.path.join(_TESTS_DIR, "..", "SKILL.md"))
 def _load_server_module():
     """Load server.py without running main(). Disable _check_config side-effects."""
     # Ensure env vars are non-empty so _check_config won't sys.exit at module level
-    os.environ.setdefault("MIFY_API_KEY", "dataset-test")
-    os.environ.setdefault("MIFY_DATASET_ID", "ds-test")
-    os.environ.setdefault("MIFY_DOCUMENT_ID", "doc-test")
+    os.environ.setdefault("DIFY_API_KEY", "dataset-test")
+    os.environ.setdefault("DIFY_DATASET_ID", "ds-test")
+    os.environ.setdefault("DIFY_DOCUMENT_ID", "doc-test")
     spec = importlib.util.spec_from_file_location("server_mod", _SERVER_PY)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -66,7 +66,7 @@ def test_delete_memory_returns_error_when_segment_not_found():
     mod.DATASET_ID = "ds-test"
 
     # DELETE returns success, but GET /segments never includes our target segment
-    async def fake_mify_request(method, path, body=None):
+    async def fake_dify_request(method, path, body=None):
         if method == "GET" and "segments" in path:
             # Return empty data — segment not found
             return {"data": [], "total": 0}
@@ -76,7 +76,7 @@ def test_delete_memory_returns_error_when_segment_not_found():
         return {"success": True}
 
     async def run_test():
-        with patch.object(mod, "mify_request", side_effect=fake_mify_request):
+        with patch.object(mod, "dify_request", side_effect=fake_dify_request):
             result = await mod.delete_memory(segment_id="seg-missing")
         return result
 
@@ -101,7 +101,7 @@ def test_delete_memory_returns_lookup_error_when_segment_list_fails():
     mod.PERMANENT_DOCUMENT_ID = "doc-perm"
     mod.DATASET_ID = "ds-test"
 
-    async def fake_mify_request(method, path, body=None):
+    async def fake_dify_request(method, path, body=None):
         if method == "GET" and "segments" in path:
             return {"error": "HTTP 500: broken"}
         if method == "DELETE":
@@ -109,7 +109,7 @@ def test_delete_memory_returns_lookup_error_when_segment_list_fails():
         return {"success": True}
 
     async def run_test():
-        with patch.object(mod, "mify_request", side_effect=fake_mify_request):
+        with patch.object(mod, "dify_request", side_effect=fake_dify_request):
             return await mod.delete_memory(segment_id="seg-any")
 
     result = run(run_test())
@@ -227,11 +227,11 @@ def test_prepare_memory_content_removes_private_blocks():
 
 
 def test_add_memory_sanitizes_private_content_before_persisting():
-    """add_memory must send only sanitized content to Mify."""
+    """add_memory must send only sanitized content to Dify."""
     mod = _load_server_module()
     calls = []
 
-    async def fake_mify_request(method, path, body=None):
+    async def fake_dify_request(method, path, body=None):
         calls.append((method, path, body))
         return {
             "data": [
@@ -244,7 +244,7 @@ def test_add_memory_sanitizes_private_content_before_persisting():
         }
 
     async def run_test():
-        with patch.object(mod, "mify_request", side_effect=fake_mify_request):
+        with patch.object(mod, "dify_request", side_effect=fake_dify_request):
             return await mod.add_memory("alpha <private>secret</private> beta")
 
     result = run(run_test())
@@ -253,17 +253,17 @@ def test_add_memory_sanitizes_private_content_before_persisting():
     assert calls[0][2]["segments"][0]["content"] == "alpha beta"
 
 
-def test_add_memory_skips_private_only_content_without_mify_call():
-    """private-only content should not create a Mify segment."""
+def test_add_memory_skips_private_only_content_without_dify_call():
+    """private-only content should not create a Dify segment."""
     mod = _load_server_module()
 
-    async def fail_mify_request(method, path, body=None):
+    async def fail_dify_request(method, path, body=None):
         raise AssertionError(
-            "mify_request should not be called for private-only content"
+            "dify_request should not be called for private-only content"
         )
 
     async def run_test():
-        with patch.object(mod, "mify_request", side_effect=fail_mify_request):
+        with patch.object(mod, "dify_request", side_effect=fail_dify_request):
             return await mod.add_memory("<private>secret</private>")
 
     result = run(run_test())
@@ -319,18 +319,18 @@ def test_skill_return_table_uses_patched_tools_not_opencode_patched():
 
 
 def test_idle_timeout_disabled_by_default(monkeypatch):
-    monkeypatch.delenv("MIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS", raising=False)
+    monkeypatch.delenv("DIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS", raising=False)
     assert _load_server_module()._idle_timeout_seconds() == 0.0
 
 
 @pytest.mark.parametrize("value", ["bad", "-1", "nan", "inf"])
 def test_invalid_idle_timeout_disables_timer(monkeypatch, value):
-    monkeypatch.setenv("MIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS", value)
+    monkeypatch.setenv("DIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS", value)
     assert _load_server_module()._idle_timeout_seconds() == 0.0
 
 
 def test_explicit_idle_timeout_remains_supported(monkeypatch):
-    monkeypatch.setenv("MIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS", "45")
+    monkeypatch.setenv("DIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS", "45")
     assert _load_server_module()._idle_timeout_seconds() == 45.0
 
 

@@ -1,8 +1,0 @@
-[Unit]
-Description=Flush queued mify-memory writes
-After=network-online.target
-
-[Service]
-Type=oneshot
-Environment=MIFY_MEMORY_STATE_DIR=%h/.mify-memory-mcp
-ExecStart=/opt/mify-memory/.venv/bin/python /opt/mify-memory/scripts/flush_offline_queue.py

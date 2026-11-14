@@ -3,9 +3,9 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mify-memory-mcp"
+name = "dify-memory-mcp"
 version = "1.11.0"
-description = "Mify knowledge-base memory MCP server"
+description = "Dify knowledge-base memory MCP server"
 requires-python = ">=3.10"
 dependencies = [
   "httpx==0.28.1",
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-mify-memory-mcp = "server:main"
+dify-memory-mcp = "server:main"
 
 [tool.setuptools]
 py-modules = [
@@ -32,17 +32,17 @@ py-modules = [
 "" = "scripts"
 
 [tool.setuptools.data-files]
-"share/mify-memory-mcp/config" = [
+"share/dify-memory-mcp/config" = [
   "config/mcporter.json",
-  "config/mify-memory-plugin.jsonc",
+  "config/dify-memory-plugin.jsonc",
   "config/openclaw-linux.json5.example",
 ]
-"share/mify-memory-mcp/docs" = [
+"share/dify-memory-mcp/docs" = [
   "README.md",
   "CHANGELOG.md",
   "SKILL.md",
 ]
-"share/mify-memory-mcp/docs/references" = [
+"share/dify-memory-mcp/docs/references" = [
   "references/installation.md",
   "references/mcp-registration.md",
   "references/api-reference.md",

@@ -37,7 +37,7 @@ def test_config_controls_persistence_and_session_sources(tmp_path, monkeypatch):
         encoding="utf-8",
     )
     monkeypatch.setenv("MCPORTER_CONFIG", str(config_path))
-    monkeypatch.delenv("MIFY_MEMORY_STATE_DIR", raising=False)
+    monkeypatch.delenv("DIFY_MEMORY_STATE_DIR", raising=False)
     monkeypatch.delenv("OPENCODE_DB_PATH", raising=False)
     monkeypatch.delenv("OPENCLAW_SESSIONS_ROOT", raising=False)
     monkeypatch.chdir(tmp_path)
@@ -71,10 +71,10 @@ def test_missing_session_sources_disable_extraction(tmp_path, monkeypatch):
     assert result["skipped"] is True
 
 
-def test_mify_client_rebinds_local_store_after_environment_load(tmp_path, monkeypatch):
+def test_dify_client_rebinds_local_store_after_environment_load(tmp_path, monkeypatch):
     import memory_service
 
-    monkeypatch.setenv("MIFY_MEMORY_STATE_DIR", str(tmp_path / "state"))
-    client = memory_service.MifyClient()
+    monkeypatch.setenv("DIFY_MEMORY_STATE_DIR", str(tmp_path / "state"))
+    client = memory_service.DifyClient()
     client.configure_from_env()
     assert client.local_store.state_dir == tmp_path / "state"

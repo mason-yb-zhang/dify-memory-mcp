@@ -66,7 +66,7 @@ def test_install_skill_files_copies_session_store(tmp_path, monkeypatch):
         / ".config"
         / "opencode"
         / "skills"
-        / "mify-memory-mcp"
+        / "dify-memory-mcp"
         / "scripts"
         / "session_store.py"
     )
@@ -80,24 +80,24 @@ def test_install_skill_files_copies_session_store(tmp_path, monkeypatch):
         / ".config"
         / "opencode"
         / "skills"
-        / "mify-memory-mcp"
+        / "dify-memory-mcp"
         / "plugins"
-        / "mify-memory-inject.js"
+        / "dify-memory-inject.js"
     )
     plugin_config = (
         fake_home
         / ".config"
         / "opencode"
         / "skills"
-        / "mify-memory-mcp"
+        / "dify-memory-mcp"
         / "config"
-        / "mify-memory-plugin.jsonc"
+        / "dify-memory-plugin.jsonc"
     )
     assert plugin.exists(), (
-        "install_skill_files() must copy plugins/mify-memory-inject.js"
+        "install_skill_files() must copy plugins/dify-memory-inject.js"
     )
     assert plugin_config.exists(), (
-        "install_skill_files() must copy config/mify-memory-plugin.jsonc"
+        "install_skill_files() must copy config/dify-memory-plugin.jsonc"
     )
 
     runtime_config = (
@@ -105,7 +105,7 @@ def test_install_skill_files_copies_session_store(tmp_path, monkeypatch):
         / ".config"
         / "opencode"
         / "skills"
-        / "mify-memory-mcp"
+        / "dify-memory-mcp"
         / "scripts"
         / "runtime_config.py"
     )
@@ -114,7 +114,7 @@ def test_install_skill_files_copies_session_store(tmp_path, monkeypatch):
         / ".config"
         / "opencode"
         / "skills"
-        / "mify-memory-mcp"
+        / "dify-memory-mcp"
         / "config"
         / "mcporter.json"
     )
@@ -134,7 +134,7 @@ def test_install_skill_files_copies_session_store(tmp_path, monkeypatch):
         "references/environment.md",
         "references/troubleshooting.md",
     ):
-        assert (fake_home / ".config" / "opencode" / "skills" / "mify-memory-mcp" / name).exists()
+        assert (fake_home / ".config" / "opencode" / "skills" / "dify-memory-mcp" / name).exists()
 
 
 # ---------------------------------------------------------------------------
@@ -154,22 +154,22 @@ def test_patch_tool_config_writes_valid_json_atomically(tmp_path):
         config_path=str(config_path),
         python_path="/usr/bin/python3",
         server_path="/some/server.py",
-        env_vars={"MIFY_API_KEY": "dataset-test"},
+        env_vars={"DIFY_API_KEY": "dataset-test"},
     )
 
     # Must be valid JSON
     content = config_path.read_text(encoding="utf-8")
     parsed = json.loads(content)  # raises if invalid
 
-    # Must contain the canonical mify-memory entry
+    # Must contain the canonical dify-memory entry
     assert "mcp" in parsed
-    assert "mify-memory" in parsed["mcp"], (
-        "Expected 'mify-memory' key under 'mcp' for opencode tool"
+    assert "dify-memory" in parsed["mcp"], (
+        "Expected 'dify-memory' key under 'mcp' for opencode tool"
     )
     assert "memory" not in parsed["mcp"], (
         "Legacy 'memory' key should be removed from the canonical OpenCode config"
     )
-    registration_env = parsed["mcp"]["mify-memory"]["environment"]
+    registration_env = parsed["mcp"]["dify-memory"]["environment"]
     assert registration_env["MCPORTER_CONFIG"].endswith(
         os.path.join("config", "mcporter.json")
     )
@@ -183,10 +183,10 @@ def test_persistent_registration_is_harness_neutral_and_secret_free():
     install_mod = _load_install_module()
 
     registration = install_mod.build_persistent_registration(
-        "/usr/bin/python3", "/opt/mify-tools/mcp/mify-memory-mcp/scripts/server.py"
+        "/usr/bin/python3", "/opt/dify-tools/mcp/dify-memory-mcp/scripts/server.py"
     )
 
-    assert registration["server_key"] == "mify-memory"
+    assert registration["server_key"] == "dify-memory"
     assert registration["description"]
     assert registration["transport"] == "stdio"
     assert registration["persistent"] is True
@@ -215,7 +215,7 @@ def test_patch_tool_config_refuses_to_rewrite_json5(tmp_path):
         config_path=str(config_path),
         python_path="/usr/bin/python3",
         server_path="/some/server.py",
-        env_vars={"MIFY_API_KEY": "dataset-test"},
+        env_vars={"DIFY_API_KEY": "dataset-test"},
     )
 
     assert result is False
@@ -232,8 +232,8 @@ def test_install_opencode_memory_plugin_registers_plugin(tmp_path, monkeypatch):
     opencode_config = config_dir / "opencode.json"
     opencode_config.write_text(json.dumps({"plugin": []}), encoding="utf-8")
 
-    plugin_path = config_dir / "plugins" / "mify-memory-inject.js"
-    plugin_config_path = config_dir / "mify-memory-plugin.jsonc"
+    plugin_path = config_dir / "plugins" / "dify-memory-inject.js"
+    plugin_config_path = config_dir / "dify-memory-plugin.jsonc"
     monkeypatch.setattr(install_mod, "OPENCODE_PLUGIN_PATH", str(plugin_path))
     monkeypatch.setattr(
         install_mod, "OPENCODE_PLUGIN_CONFIG_PATH", str(plugin_config_path)
@@ -291,8 +291,8 @@ def test_append_agent_rules_refreshes_existing_rules(tmp_path, monkeypatch):
 
     content = agents_md.read_text(encoding="utf-8")
     assert "old content" not in content
-    assert "<!-- BEGIN mify-memory-mcp AGENT_RULES -->" in content
-    assert "<!-- END mify-memory-mcp AGENT_RULES -->" in content
+    assert "<!-- BEGIN dify-memory-mcp AGENT_RULES -->" in content
+    assert "<!-- END dify-memory-mcp AGENT_RULES -->" in content
     assert "## 会话存档（Session Archive）" in content
 
 
@@ -305,7 +305,7 @@ def test_get_memory_env_state_reports_missing_required_values():
             "mcp": {
                 "memory": {
                     "enabled": True,
-                    "environment": {"MIFY_API_KEY": "dataset-test"},
+                    "environment": {"DIFY_API_KEY": "dataset-test"},
                 }
             }
         }
@@ -313,7 +313,7 @@ def test_get_memory_env_state_reports_missing_required_values():
 
     assert state == {
         "field": "environment",
-        "missing": ["MIFY_DATASET_ID", "MIFY_DOCUMENT_ID"],
+        "missing": ["DIFY_DATASET_ID", "DIFY_DOCUMENT_ID"],
         "ready": False,
     }
 
@@ -327,9 +327,9 @@ def test_get_memory_env_state_accepts_complete_environment():
             "mcp": {
                 "memory": {
                     "environment": {
-                        "MIFY_API_KEY": "dataset-test",
-                        "MIFY_DATASET_ID": "dataset-id",
-                        "MIFY_DOCUMENT_ID": "document-id",
+                        "DIFY_API_KEY": "dataset-test",
+                        "DIFY_DATASET_ID": "dataset-id",
+                        "DIFY_DOCUMENT_ID": "document-id",
                     }
                 }
             }
@@ -348,9 +348,9 @@ def test_get_memory_env_state_reports_legacy_env_field():
             "mcp": {
                 "memory": {
                     "env": {
-                        "MIFY_API_KEY": "dataset-test",
-                        "MIFY_DATASET_ID": "dataset-id",
-                        "MIFY_DOCUMENT_ID": "document-id",
+                        "DIFY_API_KEY": "dataset-test",
+                        "DIFY_DATASET_ID": "dataset-id",
+                        "DIFY_DOCUMENT_ID": "document-id",
                     }
                 }
             }
@@ -371,9 +371,9 @@ def test_migrate_legacy_memory_env_moves_values_to_environment(tmp_path):
                     "memory": {
                         "enabled": True,
                         "env": {
-                            "MIFY_API_KEY": "dataset-test",
-                            "MIFY_DATASET_ID": "dataset-id",
-                            "MIFY_DOCUMENT_ID": "document-id",
+                            "DIFY_API_KEY": "dataset-test",
+                            "DIFY_DATASET_ID": "dataset-id",
+                            "DIFY_DOCUMENT_ID": "document-id",
                         },
                     }
                 }
@@ -384,5 +384,5 @@ def test_migrate_legacy_memory_env_moves_values_to_environment(tmp_path):
 
     assert install_mod.migrate_legacy_memory_env(str(config_path)) is True
     config = json.loads(config_path.read_text(encoding="utf-8"))
-    assert config["mcp"]["memory"]["environment"]["MIFY_DATASET_ID"] == "dataset-id"
+    assert config["mcp"]["memory"]["environment"]["DIFY_DATASET_ID"] == "dataset-id"
     assert "env" not in config["mcp"]["memory"]

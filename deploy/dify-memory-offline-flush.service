@@ -1,0 +1,8 @@
+[Unit]
+Description=Flush queued dify-memory writes
+After=network-online.target
+
+[Service]
+Type=oneshot
+Environment=DIFY_MEMORY_STATE_DIR=%h/.dify-memory-mcp
+ExecStart=/opt/dify-memory/.venv/bin/python /opt/dify-memory/scripts/flush_offline_queue.py

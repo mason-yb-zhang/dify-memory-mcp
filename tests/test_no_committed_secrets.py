@@ -9,7 +9,7 @@ from pathlib import Path
 
 PATTERNS = {
     "gateway key": re.compile(r"\bsk-[A-Za-z0-9_-]{20,}"),
-    "mify key": re.compile(r"\bdataset-[A-Za-z0-9_-]{20,}"),
+    "dify key": re.compile(r"\bdataset-[A-Za-z0-9_-]{20,}"),
     "private key": re.compile(r"BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY"),
     "plaintext secret": re.compile(
         r"(?i)(?:app_secret|client_secret|api_secret|password)\s*[=:]\s*"

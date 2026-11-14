@@ -10,7 +10,7 @@ import {
   normalizeCandidates,
   persistMemoryCandidates,
   scrubSensitiveContent,
-} from "../plugins/mify-memory-inject.js"
+} from "../plugins/dify-memory-inject.js"
 
 test("extractTranscript removes private blocks from message text", () => {
   const transcript = extractTranscript([
@@ -80,9 +80,9 @@ test("persistMemoryCandidates returns a non-throwing failure on HTTP errors", as
     const result = await persistMemoryCandidates(
       [{ content: "A durable fact", keywords: ["fact"], permanent: false }],
       {
-        MIFY_API_KEY: "",
-        MIFY_DATASET_ID: "dataset-id",
-        MIFY_DOCUMENT_ID: "document-id",
+        DIFY_API_KEY: "",
+        DIFY_DATASET_ID: "dataset-id",
+        DIFY_DOCUMENT_ID: "document-id",
       },
     )
 
@@ -93,12 +93,12 @@ test("persistMemoryCandidates returns a non-throwing failure on HTTP errors", as
 })
 
 test("post-compaction hook extracts after compaction and isolates its child session", async () => {
-  const configDir = await mkdtemp(join(tmpdir(), "mify-memory-plugin-"))
+  const configDir = await mkdtemp(join(tmpdir(), "dify-memory-plugin-"))
   const originalConfigDir = process.env.OPENCODE_CONFIG_DIR
   const originalFetch = globalThis.fetch
   process.env.OPENCODE_CONFIG_DIR = configDir
   await writeFile(
-    join(configDir, "mify-memory-plugin.jsonc"),
+    join(configDir, "dify-memory-plugin.jsonc"),
     JSON.stringify({ postCompactionMemory: { enabled: true, minMessages: 4 } }),
   )
   await writeFile(
@@ -107,9 +107,9 @@ test("post-compaction hook extracts after compaction and isolates its child sess
       mcp: {
         memory: {
           environment: {
-            MIFY_API_KEY: "",
-            MIFY_DATASET_ID: "dataset-id",
-            MIFY_DOCUMENT_ID: "document-id",
+            DIFY_API_KEY: "",
+            DIFY_DATASET_ID: "dataset-id",
+            DIFY_DOCUMENT_ID: "document-id",
           },
         },
       },
@@ -147,7 +147,7 @@ test("post-compaction hook extracts after compaction and isolates its child sess
   globalThis.fetch = async () => new Response(JSON.stringify({ data: [{}] }), { status: 200 })
 
   try {
-    const plugin = await import(`../plugins/mify-memory-inject.js?test=${Date.now()}`)
+    const plugin = await import(`../plugins/dify-memory-inject.js?test=${Date.now()}`)
     hooks = await plugin.default({ client, directory: configDir })
     await hooks["experimental.compaction.autocontinue"](
       {

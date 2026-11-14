@@ -2,7 +2,7 @@
 Dify Knowledge Base Memory MCP Server
 
 Provides persistent, cross-session memory for AI agents using a Dify
-knowledge base as the vector store backend. Mify is a fork of Dify and
+knowledge base as the vector store backend. Dify is a fork of Dify and
 speaks the same `/datasets` Service API, so this server works against
 either product.
 
@@ -21,12 +21,12 @@ Tools:
   - promote_memory: Move a short-term memory to permanent storage
 
 Configuration (environment variables):
-  MIFY_API_KEY              - Dify dataset API key (required)
-  MIFY_DATASET_ID           - Knowledge base ID (required)
-  MIFY_DOCUMENT_ID          - Short-term memory document ID (required)
-  MIFY_PERMANENT_DOCUMENT_ID - Long-term memory document ID (optional, enables permanent features)
+  DIFY_API_KEY              - Dify dataset API key (required)
+  DIFY_DATASET_ID           - Knowledge base ID (required)
+  DIFY_DOCUMENT_ID          - Short-term memory document ID (required)
+  DIFY_PERMANENT_DOCUMENT_ID - Long-term memory document ID (optional, enables permanent features)
   DIFY_BASE_URL             - API base URL (default: http://127.0.0.1/v1)
-                              MIFY_BASE_URL is accepted as a legacy alias.
+                              DIFY_BASE_URL is accepted as a legacy alias.
   MEMORY_DECAY_DAYS         - Default decay threshold in days (default: 30)
   MEMORY_*                  - Retrieval tuning, see runtime_config.build_retrieval_model
 """
@@ -71,7 +71,7 @@ _ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
 def _load_dotenv(path: str = _ENV_PATH) -> list[str]:
     """Load KEY=VALUE pairs from .env into os.environ (real env vars win).
 
-    Special case for MIFY_API_KEY: the Mify KB API only accepts dataset-
+    Special case for DIFY_API_KEY: the Dify KB API only accepts dataset-
     format keys. If the process environment carries a foreign-format key
     (e.g. an sk- gateway key injected by other tooling), it must not shadow
     the valid dataset- key in .env - using it yields HTTP 401 for every call.
@@ -89,7 +89,7 @@ def _load_dotenv(path: str = _ENV_PATH) -> list[str]:
                     continue
                 current = os.environ.get(key)
                 if (
-                    key == "MIFY_API_KEY"
+                    key == "DIFY_API_KEY"
                     and current
                     and not current.startswith("dataset-")
                 ):
@@ -128,12 +128,12 @@ except ImportError:
 
 # ─── Configuration ───────────────────────────────────────────────────────────
 # No hardcoded fallback values — env vars MUST be set by install.py or .env
-MIFY_API_KEY = os.environ.get("MIFY_API_KEY", "")
-MIFY_BASE_URL = dify_base_url()
-DATASET_ID = os.environ.get("MIFY_DATASET_ID", "")
-DOCUMENT_ID = os.environ.get("MIFY_DOCUMENT_ID", "")  # short-term (decayable)
+DIFY_API_KEY = os.environ.get("DIFY_API_KEY", "")
+DIFY_BASE_URL = dify_base_url()
+DATASET_ID = os.environ.get("DIFY_DATASET_ID", "")
+DOCUMENT_ID = os.environ.get("DIFY_DOCUMENT_ID", "")  # short-term (decayable)
 PERMANENT_DOCUMENT_ID = os.environ.get(
-    "MIFY_PERMANENT_DOCUMENT_ID", ""
+    "DIFY_PERMANENT_DOCUMENT_ID", ""
 )  # long-term (never decayed)
 DECAY_THRESHOLD_DAYS = int(os.environ.get("MEMORY_DECAY_DAYS", "30"))
 SERVICE_VERSION = "1.10.1"
@@ -142,7 +142,7 @@ LOCAL_STORE = LocalStore()
 
 def _idle_timeout_seconds() -> float:
     # Stdio hosts may keep a healthy connection idle without reconnecting on exit.
-    raw = os.environ.get("MIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS", "0")
+    raw = os.environ.get("DIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS", "0")
     try:
         value = float(raw)
     except ValueError:
@@ -234,25 +234,25 @@ def _exit_when_stale(
     idle_timeout: float,
     parent_pid: int,
 ) -> None:
-    if os.environ.get("MIFY_MEMORY_MCP_LIFECYCLE_DEBUG") == "1":
+    if os.environ.get("DIFY_MEMORY_MCP_LIFECYCLE_DEBUG") == "1":
         print(
-            f"[mify-memory] lifecycle monitor idle={idle_timeout} parent={parent_pid}",
+            f"[dify-memory] lifecycle monitor idle={idle_timeout} parent={parent_pid}",
             file=sys.stderr,
             flush=True,
         )
     reason = _watch_lifecycle(last_activity, idle_timeout, parent_pid)
-    print(f"[mify-memory] MCP stdio closing: {reason}", file=sys.stderr, flush=True)
+    print(f"[dify-memory] MCP stdio closing: {reason}", file=sys.stderr, flush=True)
     os._exit(0)
 
 
 def _missing_config() -> list[str]:
     missing = []
-    if not MIFY_API_KEY:
-        missing.append("MIFY_API_KEY")
+    if not DIFY_API_KEY:
+        missing.append("DIFY_API_KEY")
     if not DATASET_ID:
-        missing.append("MIFY_DATASET_ID")
+        missing.append("DIFY_DATASET_ID")
     if not DOCUMENT_ID:
-        missing.append("MIFY_DOCUMENT_ID")
+        missing.append("DIFY_DOCUMENT_ID")
     return missing
 
 
@@ -260,7 +260,7 @@ def _build_config_error(missing: list[str]) -> str:
     if not missing:
         return ""
     return (
-        f"mify-memory 凭证缺失：{', '.join(missing)}，记忆服务暂不可用。\n"
+        f"dify-memory 凭证缺失：{', '.join(missing)}，记忆服务暂不可用。\n"
         "请提示用户提供这些值：用户可以把值直接发给我，由我写入 "
         f"{_ENV_PATH}；或由用户手动运行 `python install.py --api-key <KEY>`。\n"
         "注意：凭证写入 .env 即可，不要写进 opencode.json 的 environment（该文件会被自动重写工具冲掉）。"
@@ -271,7 +271,7 @@ def _build_config_error(missing: list[str]) -> str:
 CONFIG_ERROR = _build_config_error(_missing_config())
 
 
-# ─── Mify API Client ────────────────────────────────────────────────────────
+# ─── Dify API Client ────────────────────────────────────────────────────────
 # Module-level shared client — reuses TCP connections across all requests
 _http_client: httpx.AsyncClient | None = None
 
@@ -283,16 +283,16 @@ def _get_client() -> httpx.AsyncClient:
         _http_client = httpx.AsyncClient(
             timeout=30.0,
             headers={
-                "Authorization": f"Bearer {MIFY_API_KEY}",
+                "Authorization": f"Bearer {DIFY_API_KEY}",
                 "Content-Type": "application/json",
             },
         )
     return _http_client
 
 
-async def mify_request(method: str, path: str, body: dict | None = None) -> dict:
-    """Make HTTP request to Mify API using shared client."""
-    url = f"{MIFY_BASE_URL}{path}"
+async def dify_request(method: str, path: str, body: dict | None = None) -> dict:
+    """Make HTTP request to Dify API using shared client."""
+    url = f"{DIFY_BASE_URL}{path}"
     client = _get_client()
     try:
         if method == "GET":
@@ -313,7 +313,7 @@ async def mify_request(method: str, path: str, body: dict | None = None) -> dict
         if not resp.text:
             return {"success": True}
         parsed = resp.json()
-        # Mify DELETE sometimes returns body "204\n" which parses as int 204
+        # Dify DELETE sometimes returns body "204\n" which parses as int 204
         if not isinstance(parsed, dict):
             return {"success": True}
         return parsed
@@ -365,7 +365,7 @@ async def add_memory(
     if keywords:
         segment["keywords"] = keywords
     body = {"segments": [segment]}
-    result = await mify_request("POST", path, body)
+    result = await dify_request("POST", path, body)
     if "data" in result and result["data"]:
         seg = result["data"][0]
         return {
@@ -385,7 +385,7 @@ async def search_memory(query: str, top_k: int = 5) -> dict:
         "query": query,
         "retrieval_model": build_retrieval_model(top_k),
     }
-    result = await mify_request("POST", path, body)
+    result = await dify_request("POST", path, body)
     if "records" in result:
         memories = []
         for record in result["records"]:
@@ -429,7 +429,7 @@ async def update_memory(
 
     # Try short-term first
     path = f"/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments/{segment_id}"
-    result = await mify_request("POST", path, body)
+    result = await dify_request("POST", path, body)
     if "data" in result:
         return {
             "success": True,
@@ -441,7 +441,7 @@ async def update_memory(
     # Try long-term if short-term failed and permanent doc exists
     if PERMANENT_DOCUMENT_ID and "error" in result:
         path = f"/datasets/{DATASET_ID}/documents/{PERMANENT_DOCUMENT_ID}/segments/{segment_id}"
-        result = await mify_request("POST", path, body)
+        result = await dify_request("POST", path, body)
         if "data" in result:
             return {
                 "success": True,
@@ -463,7 +463,7 @@ async def _find_segment_in_document(segment_id: str, document_id: str) -> dict:
     max_pages = 50
     while page <= max_pages:
         path = f"/datasets/{DATASET_ID}/documents/{document_id}/segments"
-        result = await mify_request("GET", path, {"page": page, "limit": 100})
+        result = await dify_request("GET", path, {"page": page, "limit": 100})
         if "error" in result:
             return {"error": result["error"]}
         data = result.get("data", [])
@@ -482,7 +482,7 @@ async def _find_segment_in_document(segment_id: str, document_id: str) -> dict:
 async def delete_memory(segment_id: str) -> dict:
     """Delete a memory segment. Auto-detects which document it belongs to.
 
-    Verifies that the segment exists before issuing DELETE, because the Mify
+    Verifies that the segment exists before issuing DELETE, because the Dify
     DELETE endpoint returns success=True even for non-existent segments.
     """
     # Try short-term first
@@ -491,7 +491,7 @@ async def delete_memory(segment_id: str) -> dict:
         return {"error": f"Failed to check short-term memory: {short_lookup['error']}"}
     if short_lookup.get("found"):
         path = f"/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments/{segment_id}"
-        result = await mify_request("DELETE", path)
+        result = await dify_request("DELETE", path)
         if result.get("success"):
             return {"success": True, "segment_id": segment_id, "permanent": False}
         return result
@@ -505,7 +505,7 @@ async def delete_memory(segment_id: str) -> dict:
             }
         if long_lookup.get("found"):
             path = f"/datasets/{DATASET_ID}/documents/{PERMANENT_DOCUMENT_ID}/segments/{segment_id}"
-            result = await mify_request("DELETE", path)
+            result = await dify_request("DELETE", path)
             if result.get("success"):
                 return {"success": True, "segment_id": segment_id, "permanent": True}
             return result
@@ -541,7 +541,7 @@ async def list_memories(
     # Short-term memories
     if storage in ("short_term", "all"):
         path = f"/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments"
-        result = await mify_request("GET", path, params)
+        result = await dify_request("GET", path, params)
         if "error" not in result and "data" in result:
             memories.extend(_format_segments(result["data"], permanent=False))
             total += result.get("total", len(result["data"]))
@@ -549,7 +549,7 @@ async def list_memories(
     # Long-term memories
     if storage in ("long_term", "all") and PERMANENT_DOCUMENT_ID:
         path = f"/datasets/{DATASET_ID}/documents/{PERMANENT_DOCUMENT_ID}/segments"
-        result = await mify_request("GET", path, params)
+        result = await dify_request("GET", path, params)
         if "error" not in result and "data" in result:
             memories.extend(_format_segments(result["data"], permanent=True))
             total += result.get("total", len(result["data"]))
@@ -573,7 +573,7 @@ async def decay_memories(days: int | None = None) -> dict:
     max_pages = 50  # Safety cap to avoid infinite loop
     while page <= max_pages:
         path = f"/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments"
-        result = await mify_request("GET", path, {"page": page, "limit": 100})
+        result = await dify_request("GET", path, {"page": page, "limit": 100})
         if "error" in result:
             break
         data = result.get("data", [])
@@ -613,7 +613,7 @@ async def decay_memories(days: int | None = None) -> dict:
             path = (
                 f"/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments/{seg['id']}"
             )
-            result = await mify_request("DELETE", path)
+            result = await dify_request("DELETE", path)
             if result.get("success"):
                 deleted.append(seg["id"])
             else:
@@ -649,7 +649,7 @@ async def promote_memory(segment_id: str) -> dict:
     page = 1
     while page <= 20:  # safety cap
         path = f"/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments"
-        result = await mify_request("GET", path, {"page": page, "limit": 100})
+        result = await dify_request("GET", path, {"page": page, "limit": 100})
         if "error" in result:
             return result
         data = result.get("data", [])
@@ -680,7 +680,7 @@ async def promote_memory(segment_id: str) -> dict:
             }
         ]
     }
-    create_result = await mify_request("POST", perm_path, body)
+    create_result = await dify_request("POST", perm_path, body)
     if "error" in create_result:
         return {
             "error": f"Failed to create in permanent storage: {create_result['error']}"
@@ -690,7 +690,7 @@ async def promote_memory(segment_id: str) -> dict:
 
     # Step 3: Delete from short-term doc (check result)
     del_path = f"/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments/{segment_id}"
-    del_result = await mify_request("DELETE", del_path)
+    del_result = await dify_request("DELETE", del_path)
 
     response = {
         "success": True,
@@ -708,7 +708,7 @@ async def promote_memory(segment_id: str) -> dict:
 
 
 # ─── MCP Server ─────────────────────────────────────────────────────────────
-app = Server("mify-memory")
+app = Server("dify-memory")
 
 
 @app.list_resources()
@@ -741,7 +741,7 @@ async def list_resources() -> list[Resource]:
         Resource(
             uri="memory://health",
             name="Memory Service Health",
-            description="Configuration, Mify connectivity, cache, queue, and metrics status.",
+            description="Configuration, Dify connectivity, cache, queue, and metrics status.",
             mimeType="application/json",
         ),
     ]
@@ -778,7 +778,7 @@ async def read_resource(uri: str) -> str:
             keyword=qs.get("keyword", ""),
         )
     elif parsed.hostname == "health":
-        result = await memory_service.get_health(check_mify=qs.get("check", "1") == "1")
+        result = await memory_service.get_health(check_dify=qs.get("check", "1") == "1")
     else:
         raise ValueError(f"Unknown resource path: {parsed.hostname}")
     return json.dumps(result, ensure_ascii=False, indent=2)
@@ -870,7 +870,7 @@ async def list_tools() -> list[Tool]:
                     "explain": {
                         "type": "boolean",
                         "default": False,
-                        "description": "Return score_details (mify_score/recency/temporal/final)",
+                        "description": "Return score_details (dify_score/recency/temporal/final)",
                     },
                     "reference_date": {
                         "type": "string",
@@ -1028,8 +1028,8 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="get_health",
-            description="Check configuration, Mify connectivity, cache, queue, and metrics.",
-            inputSchema={"type": "object", "properties": {"check_mify": {"type": "boolean", "default": True}}},
+            description="Check configuration, Dify connectivity, cache, queue, and metrics.",
+            inputSchema={"type": "object", "properties": {"check_dify": {"type": "boolean", "default": True}}},
         ),
     ]
 
@@ -1041,7 +1041,7 @@ async def list_tools() -> list[Tool]:
                     name="save_session",
                     description=(
                         "Archive a full conversation session. Extracts content from OpenCode DB (or accepts manual input), "
-                        "uploads full text to Mify sessions KB, and writes a lightweight index locally. "
+                        "uploads full text to Dify sessions KB, and writes a lightweight index locally. "
                         "Use at end of important sessions to enable cross-tool context sharing. "
                         "Supports incremental append: subsequent calls only upload new messages."
                     ),
@@ -1078,7 +1078,7 @@ async def list_tools() -> list[Tool]:
                         "Browse archived session index (local, lightweight, no API calls). "
                         "Shows session titles, dates, sources, and summaries. "
                         "Use this first to find relevant sessions before calling search_session. "
-                        "Indexes are stored in Mify cloud, accessible from all tools sharing this MCP."
+                        "Indexes are stored in Dify cloud, accessible from all tools sharing this MCP."
                     ),
                     inputSchema={
                         "type": "object",
@@ -1099,7 +1099,7 @@ async def list_tools() -> list[Tool]:
                 Tool(
                     name="search_session",
                     description=(
-                        "Deep semantic search across FULL archived session content in Mify KB. "
+                        "Deep semantic search across FULL archived session content in Dify KB. "
                         "Unlike list_sessions (local index only), this searches the complete conversation text. "
                         "Use when you need to find specific details from past sessions across tools."
                     ),
@@ -1121,13 +1121,13 @@ async def list_tools() -> list[Tool]:
                 ),
                 Tool(
                     name="get_session_detail",
-                    description="Read the full content of a specific archived session segment by its Mify segment ID.",
+                    description="Read the full content of a specific archived session segment by its Dify segment ID.",
                     inputSchema={
                         "type": "object",
                         "properties": {
                             "segment_id": {
                                 "type": "string",
-                                "description": "Mify segment ID from search_session results",
+                                "description": "Dify segment ID from search_session results",
                             },
                             "document_id": {
                                 "type": "string",
@@ -1262,18 +1262,18 @@ def main():
     ).start()
 
     if CONFIG_ERROR:
-        print(f"[mify-memory] ERROR: {CONFIG_ERROR}", file=sys.stderr)
+        print(f"[dify-memory] ERROR: {CONFIG_ERROR}", file=sys.stderr)
         print(
-            "[mify-memory] Starting in degraded mode: tool calls will return the configuration prompt above.",
+            "[dify-memory] Starting in degraded mode: tool calls will return the configuration prompt above.",
             file=sys.stderr,
         )
     elif not PERMANENT_DOCUMENT_ID:
         print(
-            "[mify-memory] WARNING: MIFY_PERMANENT_DOCUMENT_ID not set. Long-term memory disabled.",
+            "[dify-memory] WARNING: DIFY_PERMANENT_DOCUMENT_ID not set. Long-term memory disabled.",
             file=sys.stderr,
         )
         print(
-            "[mify-memory] Re-run install.py to create the permanent memory document.",
+            "[dify-memory] Re-run install.py to create the permanent memory document.",
             file=sys.stderr,
         )
 

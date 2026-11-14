@@ -1,15 +1,15 @@
-# mify-memory-mcp (Dify edition)
+# dify-memory-mcp (Dify edition)
 
 基于 Dify 知识库的 AI Agent 跨会话记忆与 Session Archive MCP Server。
 
 > ## Dify edition
 >
-> 本版本已从 Mify 移植到 **Dify**。Mify 是 Dify 的内部分支，两者共用
+> 本版本已从 Dify 移植到 **Dify**。Dify 是 Dify 的内部分支，两者共用
 > `/datasets` 知识库 Service API，因此移植只涉及两类改动：
 >
-> 1. **Base URL** —— 从 `service.mify.mioffice.cn/api/v1` 改为任意 Dify 的 `/v1`
->    （`DIFY_BASE_URL`，兼容旧的 `MIFY_BASE_URL`）
-> 2. **重排配置** —— 移除 Mify 内部的通义重排模型，默认改为
+> 1. **Base URL** —— 从 `service.dify.mioffice.cn/api/v1` 改为任意 Dify 的 `/v1`
+>    （`DIFY_BASE_URL`，兼容旧的 `DIFY_BASE_URL`）
+> 2. **重排配置** —— 移除 Dify 内部的通义重排模型，默认改为
 >    `hybrid_search` + `weighted_score`，**无需任何 rerank 模型**即可在
 >    标准 Dify 上运行
 >
@@ -67,12 +67,12 @@ python scripts/install.py --api-key "<dataset-key>"
 `persistence.directory` 决定。完整字段见
 [references/environment.md](references/environment.md)。
 
-OpenCode 必须使用规范键 `mcp.mify-memory.environment`。旧 `mcp.memory`
+OpenCode 必须使用规范键 `mcp.dify-memory.environment`。旧 `mcp.memory`
 仅用于迁移，不应新增。
 
 ## MCP 注册
 
-`mify-memory` 使用本地 stdio `command/args`。注册必须写入 harness 长期配置。
+`dify-memory` 使用本地 stdio `command/args`。注册必须写入 harness 长期配置。
 模板、OpenCode/OpenClaw 示例和 HTTP MCP 契约见
 [references/mcp-registration.md](references/mcp-registration.md)。
 
@@ -88,8 +88,8 @@ OpenCode 必须使用规范键 `mcp.mify-memory.environment`。旧 `mcp.memory`
 
 Session Archive 的 5 个工具需要：
 
-- `MIFY_SESSION_INDEX_DOCUMENT_ID`
-- `MIFY_SESSIONS_DATASET_ID`
+- `DIFY_SESSION_INDEX_DOCUMENT_ID`
+- `DIFY_SESSIONS_DATASET_ID`
 
 首次归档必须由用户明确触发；已归档会话可增量同步。
 
@@ -99,7 +99,7 @@ Session Archive 的 5 个工具需要：
 Agent
   -> MCP stdio server.py
       -> memory_service / session_store
-          -> Mify API
+          -> Dify API
       -> local_store
           -> cache.json
           -> offline-queue.json
@@ -119,25 +119,25 @@ Agent
 
 | 变量 | 用途 |
 |---|---|
-| `MIFY_API_KEY` | Mify API Key |
-| `MIFY_DATASET_ID` | 记忆知识库 ID |
-| `MIFY_DOCUMENT_ID` | 短期文档 ID |
-| `MIFY_PERMANENT_DOCUMENT_ID` | 长期文档 ID |
-| `MIFY_SESSION_INDEX_DOCUMENT_ID` | 会话索引文档 ID |
-| `MIFY_SESSIONS_DATASET_ID` | Session Archive 知识库 ID |
-| `DIFY_BASE_URL` | Dify API 地址（默认 `http://127.0.0.1/v1`，兼容旧 `MIFY_BASE_URL`） |
+| `DIFY_API_KEY` | Dify API Key |
+| `DIFY_DATASET_ID` | 记忆知识库 ID |
+| `DIFY_DOCUMENT_ID` | 短期文档 ID |
+| `DIFY_PERMANENT_DOCUMENT_ID` | 长期文档 ID |
+| `DIFY_SESSION_INDEX_DOCUMENT_ID` | 会话索引文档 ID |
+| `DIFY_SESSIONS_DATASET_ID` | Session Archive 知识库 ID |
+| `DIFY_BASE_URL` | Dify API 地址（默认 `http://127.0.0.1/v1`，兼容旧 `DIFY_BASE_URL`） |
 | `MEMORY_*` | 检索与重排调优，见 `runtime_config.build_retrieval_model` |
 | `MEMORY_DECAY_DAYS` | 冷记忆阈值 |
-| `MIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS` | stdio 空闲回收时间 |
+| `DIFY_MEMORY_MCP_IDLE_TIMEOUT_SECONDS` | stdio 空闲回收时间 |
 | `MCPORTER_CONFIG` | harness 中立配置文件 |
-| `MIFY_MEMORY_STATE_DIR` | 覆盖 `persistence.directory` |
+| `DIFY_MEMORY_STATE_DIR` | 覆盖 `persistence.directory` |
 | `OPENCODE_DB_PATH` | 覆盖 OpenCode SQLite 路径 |
 | `OPENCLAW_SESSIONS_ROOT` | 覆盖 OpenClaw 会话根目录 |
 
 ## 安装文件
 
 ```text
-mify-memory-mcp/
+dify-memory-mcp/
 ├── SKILL.md
 ├── README.md
 ├── CHANGELOG.md
@@ -165,10 +165,10 @@ mify-memory-mcp/
 │   └── .env.example
 ├── config/
 │   ├── mcporter.json
-│   ├── mify-memory-plugin.jsonc
+│   ├── dify-memory-plugin.jsonc
 │   └── openclaw-linux.json5.example
 ├── plugins/
-│   └── mify-memory-inject.js
+│   └── dify-memory-inject.js
 ├── deploy/
 ├── tests/
 ├── Dockerfile
@@ -184,7 +184,7 @@ mify-memory-mcp/
 调用 `get_health` 后检查：
 
 - `missing_config`
-- Mify 连接
+- Dify 连接
 - `cache.json` 和 `offline-queue.json`
 - `sessionSources.default`
 - harness 注册键和环境字段
@@ -215,7 +215,7 @@ mify-memory-mcp/
 
 ### OpenClaw 能否替代原生记忆？
 
-推荐并存。`mify-memory-mcp` 提供跨工具语义检索，不复制 OpenClaw 的
+推荐并存。`dify-memory-mcp` 提供跨工具语义检索，不复制 OpenClaw 的
 session bootstrap、dreaming 和 auto flush。
 
 ## 发布历史

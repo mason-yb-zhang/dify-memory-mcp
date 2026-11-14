@@ -72,6 +72,6 @@ def test_current_docs_describe_local_resilience_and_harness_restart():
 
 def test_opencode_setup_uses_canonical_persistent_key():
     setup = read("scripts/setup.py")
-    assert '"mify-memory": {' in setup
+    assert '"dify-memory": {' in setup
     assert '"memory": {' not in setup
-    assert "mcp.mify-memory.environment" in read("README.md")
+    assert "mcp.dify-memory.environment" in read("README.md")

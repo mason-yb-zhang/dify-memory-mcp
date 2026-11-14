@@ -3,7 +3,7 @@
 ## 诊断顺序
 
 1. 调用 `get_health`。
-2. 检查 `missing_config`、Mify 连接和本地队列。
+2. 检查 `missing_config`、Dify 连接和本地队列。
 3. 确认 harness 注册键和环境字段。
 4. 读取 `mcp_registration.config_paths`。
 5. 根据下表处理，并交付诊断结论和处理记录。
@@ -12,7 +12,7 @@
 
 | 现象 | 可能原因 | 处理 |
 |---|---|---|
-| `Missing environment variables` | 注册缺少 Mify ID | 运行 `install.py --api-key <KEY>` 并校验注册 |
+| `Missing environment variables` | 注册缺少 Dify ID | 运行 `install.py --api-key <KEY>` 并校验注册 |
 | HTTP 401 | API Key 无效或环境被非 `dataset-` 值污染 | 替换 Key；检查环境优先级 |
 | 搜索无结果 | 新记忆仍在索引 | 等待数秒后重试 |
 | `MCPORTER_CONFIG` 缺失 | 注册环境未落盘 | 补齐注册环境和配置路径 |
@@ -21,7 +21,7 @@
 | OpenCode 无会话 | SQLite 路径错误 | 校验 `sessionSources.opencode.databasePath` |
 | 工具列表为空 | 注册未持久化或 harness 未重启 | 校验注册键，重启 harness |
 | 更新冲突 | 内容已被其他会话修改 | 使用最新 `expected_content_hash` |
-| 离线队列堆积 | Mify 暂时不可用 | 网络恢复后调用 `flush_offline_queue` |
+| 离线队列堆积 | Dify 暂时不可用 | 网络恢复后调用 `flush_offline_queue` |
 
 ## 安装包缺失
 

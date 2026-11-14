@@ -6,7 +6,7 @@
 Agent
   -> MCP stdio server.py
       -> memory_service / session_store
-          -> Mify API
+          -> Dify API
               -> Memory Dataset
               -> Sessions Dataset
       -> local_store
@@ -37,9 +37,9 @@ Agent
 ## 本地韧性
 
 - `cache.json` 保存短期搜索缓存。
-- `offline-queue.json` 保存 Mify 写入失败后的待重试操作。
+- `offline-queue.json` 保存 Dify 写入失败后的待重试操作。
 - 数据目录由 `persistence.directory` 决定。
-- 本地文件不是权威记忆库；权威数据位于 Mify。
+- 本地文件不是权威记忆库；权威数据位于 Dify。
 
 ## MCP 生命周期
 
@@ -51,6 +51,6 @@ Agent
 ## 安全边界
 
 - 不在代码、配置模板或文档中保存真实凭据。
-- `<private>...</private>` 内容写入 Mify 前移除。
+- `<private>...</private>` 内容写入 Dify 前移除。
 - `update_memory` 默认要求 `expected_content_hash`。
-- Mify 写入使用幂等键和有限重试。
+- Dify 写入使用幂等键和有限重试。

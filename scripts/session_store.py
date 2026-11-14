@@ -1,5 +1,5 @@
 """
-Session Store Module for mify-memory-mcp
+Session Store Module for dify-memory-mcp
 
 Provides full-session archiving with a two-tier architecture:
   - Tier 1 (Index): Lightweight summaries in dedicated session-indexes Document (Memory Dataset)
@@ -34,13 +34,13 @@ from openclaw_session import extract_openclaw_sessions
 import runtime_config
 
 # ─── Configuration ───────────────────────────────────────────────────────────
-SESSIONS_DATASET_ID = os.environ.get("MIFY_SESSIONS_DATASET_ID", "")
-MIFY_API_KEY = os.environ.get("MIFY_API_KEY", "")
-MIFY_BASE_URL = runtime_config.dify_base_url()
+SESSIONS_DATASET_ID = os.environ.get("DIFY_SESSIONS_DATASET_ID", "")
+DIFY_API_KEY = os.environ.get("DIFY_API_KEY", "")
+DIFY_BASE_URL = runtime_config.dify_base_url()
 
 # Session index document (dedicated doc in Memory Dataset for index entries)
-MEMORY_DATASET_ID = os.environ.get("MIFY_DATASET_ID", "")
-SESSION_INDEX_DOCUMENT_ID = os.environ.get("MIFY_SESSION_INDEX_DOCUMENT_ID", "")
+MEMORY_DATASET_ID = os.environ.get("DIFY_DATASET_ID", "")
+SESSION_INDEX_DOCUMENT_ID = os.environ.get("DIFY_SESSION_INDEX_DOCUMENT_ID", "")
 
 def _opencode_db_path() -> Path | None:
     return runtime_config.opencode_db_path()
@@ -48,7 +48,7 @@ def _opencode_db_path() -> Path | None:
 
 def _get_headers():
     return {
-        "Authorization": f"Bearer {MIFY_API_KEY}",
+        "Authorization": f"Bearer {DIFY_API_KEY}",
         "Content-Type": "application/json",
     }
 
@@ -83,9 +83,9 @@ async def close_http_client() -> None:
         await client.aclose()
 
 
-async def _mify_request(method: str, path: str, body: dict | None = None) -> dict:
-    """Make HTTP request to Mify API using shared client."""
-    url = f"{MIFY_BASE_URL}{path}"
+async def _dify_request(method: str, path: str, body: dict | None = None) -> dict:
+    """Make HTTP request to Dify API using shared client."""
+    url = f"{DIFY_BASE_URL}{path}"
     client = _get_client()
     try:
         if method == "GET":
@@ -383,7 +383,7 @@ async def _create_session_document(title: str, date_str: str, initial_text: str)
     Returns: {"document_id": "...", "error": None} or {"document_id": None, "error": "..."}
     """
     if not SESSIONS_DATASET_ID:
-        return {"document_id": None, "error": "MIFY_SESSIONS_DATASET_ID not configured"}
+        return {"document_id": None, "error": "DIFY_SESSIONS_DATASET_ID not configured"}
 
     path = f"/datasets/{SESSIONS_DATASET_ID}/document/create-by-text"
     doc_name = f"{date_str}_{title}"[:80]
@@ -397,7 +397,7 @@ async def _create_session_document(title: str, date_str: str, initial_text: str)
         "process_rule": {"mode": "automatic"},
     }
 
-    result = await _mify_request("POST", path, body)
+    result = await _dify_request("POST", path, body)
 
     if "document" in result:
         return {"document_id": result["document"]["id"], "error": None}
@@ -426,15 +426,15 @@ async def _append_segments_to_document(document_id: str, segments_text: list[str
             "content": text,
             "keywords": [source, "session-message"],
         })
-        # Mify batch limit ~uncertain, send in groups of 10
+        # Dify batch limit ~uncertain, send in groups of 10
         if len(batch) >= 10:
-            result = await _mify_request("POST", path, {"segments": batch})
+            result = await _dify_request("POST", path, {"segments": batch})
             if "data" in result:
                 segment_ids.extend(seg["id"] for seg in result["data"])
             batch = []
 
     if batch:
-        result = await _mify_request("POST", path, {"segments": batch})
+        result = await _dify_request("POST", path, {"segments": batch})
         if "data" in result:
             segment_ids.extend(seg["id"] for seg in result["data"])
 
@@ -460,7 +460,7 @@ async def _save_index_to_memory(index_content: str, title: str, source: str, ses
             "keywords": ["session-index", source, title[:30]],
         }]
     }
-    result = await _mify_request("POST", path, body)
+    result = await _dify_request("POST", path, body)
     if "data" in result and result["data"]:
         return result["data"][0]["id"]
     return None
@@ -474,7 +474,7 @@ async def _find_existing_index(session_id: str) -> dict | None:
         return None
 
     path = f"/datasets/{MEMORY_DATASET_ID}/documents/{SESSION_INDEX_DOCUMENT_ID}/segments"
-    url = f"{MIFY_BASE_URL}{path}"
+    url = f"{DIFY_BASE_URL}{path}"
     client = _get_client()
 
     page = 1
@@ -518,7 +518,7 @@ async def _update_index(segment_id: str, index_content: str) -> bool:
 
     path = f"/datasets/{MEMORY_DATASET_ID}/documents/{SESSION_INDEX_DOCUMENT_ID}/segments/{segment_id}"
     body = {"segment": {"content": index_content, "enabled": True}}
-    result = await _mify_request("POST", path, body)
+    result = await _dify_request("POST", path, body)
     return "data" in result
 
 
@@ -681,7 +681,7 @@ async def save_session(
 
             # New document created successfully — now delete the old one
             del_path = f"/datasets/{SESSIONS_DATASET_ID}/documents/{document_id}"
-            delete_result = await _mify_request("DELETE", del_path)
+            delete_result = await _dify_request("DELETE", del_path)
             old_document_deleted = delete_result.get("success") is True
 
             # Update index with new document_id
@@ -791,11 +791,11 @@ async def list_sessions(limit: int = 20, keyword: str = "") -> dict:
     within the memory dataset. All tools sharing this MCP can access them.
     """
     if not MEMORY_DATASET_ID or not SESSION_INDEX_DOCUMENT_ID:
-        return {"error": "Session index document not configured. Set MIFY_SESSION_INDEX_DOCUMENT_ID."}
+        return {"error": "Session index document not configured. Set DIFY_SESSION_INDEX_DOCUMENT_ID."}
 
     # Read all segments from the dedicated session-indexes document
     path = f"/datasets/{MEMORY_DATASET_ID}/documents/{SESSION_INDEX_DOCUMENT_ID}/segments"
-    url = f"{MIFY_BASE_URL}{path}"
+    url = f"{DIFY_BASE_URL}{path}"
     client = _get_client()
 
     all_index_segments = []
@@ -858,13 +858,13 @@ async def list_sessions(limit: int = 20, keyword: str = "") -> dict:
 
 
 async def search_session(query: str, top_k: int = 5) -> dict:
-    """Deep semantic search across FULL archived session content in Mify KB.
+    """Deep semantic search across FULL archived session content in Dify KB.
     
     Uses full-text search (keyword_search) for exact matching of conversation content.
     Each session is an independent document — results include document_id for detail retrieval.
     """
     if not SESSIONS_DATASET_ID:
-        return {"error": "MIFY_SESSIONS_DATASET_ID not configured. Re-run install.py --api-key <KEY> to enable Session Archive."}
+        return {"error": "DIFY_SESSIONS_DATASET_ID not configured. Re-run install.py --api-key <KEY> to enable Session Archive."}
 
     path = f"/datasets/{SESSIONS_DATASET_ID}/retrieve"
     body = {
@@ -876,7 +876,7 @@ async def search_session(query: str, top_k: int = 5) -> dict:
             "score_threshold_enabled": False,
         },
     }
-    result = await _mify_request("POST", path, body)
+    result = await _dify_request("POST", path, body)
     if "records" in result:
         results = []
         for record in result["records"]:
@@ -899,12 +899,12 @@ async def search_session(query: str, top_k: int = 5) -> dict:
 
 
 async def get_session_detail(segment_id: str, document_id: str | None = None) -> dict:
-    """Read the full content of a specific archived session segment by its Mify segment ID.
+    """Read the full content of a specific archived session segment by its Dify segment ID.
 
     Use segment_ids from search_session results. Returns the full text of that segment.
 
     Args:
-        segment_id: The Mify segment ID to retrieve.
+        segment_id: The Dify segment ID to retrieve.
         document_id: Optional. When provided, scans only that document's segments
             (fast direct path). When omitted, falls back to enumerating all documents
             in the Sessions Dataset (with a safety cap of 100 documents).
@@ -916,7 +916,7 @@ async def get_session_detail(segment_id: str, document_id: str | None = None) ->
 
     async def _scan_document(doc_id: str, doc_name: str) -> dict | None:
         """Scan segments of a single document for segment_id. Returns match or None."""
-        seg_url = f"{MIFY_BASE_URL}/datasets/{SESSIONS_DATASET_ID}/documents/{doc_id}/segments"
+        seg_url = f"{DIFY_BASE_URL}/datasets/{SESSIONS_DATASET_ID}/documents/{doc_id}/segments"
         seg_page = 1
         while True:
             seg_resp = await client.get(seg_url, params={"page": seg_page, "limit": 100})
@@ -949,7 +949,7 @@ async def get_session_detail(segment_id: str, document_id: str | None = None) ->
 
     # Fallback: enumerate documents (paginated, safety cap = 100 documents)
     docs_path = f"/datasets/{SESSIONS_DATASET_ID}/documents"
-    url = f"{MIFY_BASE_URL}{docs_path}"
+    url = f"{DIFY_BASE_URL}{docs_path}"
 
     docs_page = 1
     docs_scanned = 0
@@ -1002,7 +1002,7 @@ async def delete_session(session_id: str) -> dict:
     doc_required = bool(document_id and document_id != "pending")
     if doc_required:
         path = f"/datasets/{SESSIONS_DATASET_ID}/documents/{document_id}"
-        result = await _mify_request("DELETE", path)
+        result = await _dify_request("DELETE", path)
         results["deleted_document"] = result.get("success") is True
         if "error" in result:
             results["document_error"] = result["error"]
@@ -1011,7 +1011,7 @@ async def delete_session(session_id: str) -> dict:
     index_required = bool(index_segment_id and MEMORY_DATASET_ID and SESSION_INDEX_DOCUMENT_ID)
     if index_required:
         path = f"/datasets/{MEMORY_DATASET_ID}/documents/{SESSION_INDEX_DOCUMENT_ID}/segments/{index_segment_id}"
-        result = await _mify_request("DELETE", path)
+        result = await _dify_request("DELETE", path)
         results["deleted_index"] = result.get("success") is True
         if "error" in result:
             results["index_error"] = result["error"]
